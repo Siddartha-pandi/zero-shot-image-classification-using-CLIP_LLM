@@ -1,44 +1,26 @@
-""""""
-
-Domain Adaptation for the CLIP-LLM Framework.Domain adaptation module for adaptive auto-tuning
-
-""""""
+"""
+Domain adaptation module for adaptive auto-tuning
+"""
 
 import numpy as np
+from typing import Dict, List, Any
+import logging
 
-class DomainAdaptation:from typing import Dict, List, Any
-
-    def __init__(self):import logging
-
-        # In a real implementation, this would manage domain-specific models or prompts
-
-        passlogger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
-
-    def adapt_to_domain(self, domain_name):class DomainAdaptation:
-
-        """    def __init__(self):
-
-        Adapts the framework to a specific domain.        # Domain-specific weight adjustments
-
-        Returns information about the adaptation.        self.domain_weights = {
-
-        """            'photo': {'base': 1.0, 'adjustment': 0.0},
-
-        # Placeholder logic            'sketch': {'base': 0.8, 'adjustment': 0.2},
-
-        if domain_name == "medical":            'cartoon': {'base': 0.9, 'adjustment': 0.1},
-
-            return {"status": "Adapted to medical domain", "prompts": "Using clinical terminology."}            'medical': {'base': 1.1, 'adjustment': -0.1},
-
-        elif domain_name == "art":            'satellite': {'base': 1.2, 'adjustment': -0.2},
-
-            return {"status": "Adapted to art domain", "prompts": "Focusing on style and medium."}            'art': {'base': 0.85, 'adjustment': 0.15},
-
-        else:            'unknown': {'base': 1.0, 'adjustment': 0.0}
-
-            return {"status": "Using general domain", "prompts": "Standard prompts."}        }
+class DomainAdaptation:
+    def __init__(self):
+        # Domain-specific weight adjustments
+        self.domain_weights = {
+            'photo': {'base': 1.0, 'adjustment': 0.0},
+            'sketch': {'base': 0.8, 'adjustment': 0.2},
+            'cartoon': {'base': 0.9, 'adjustment': 0.1},
+            'medical': {'base': 1.1, 'adjustment': -0.1},
+            'satellite': {'base': 1.2, 'adjustment': -0.2},
+            'art': {'base': 0.85, 'adjustment': 0.15},
+            'unknown': {'base': 1.0, 'adjustment': 0.0}
+        }
 
     
     def detect_domain(self, image_embeddings: np.ndarray) -> Dict[str, Any]:

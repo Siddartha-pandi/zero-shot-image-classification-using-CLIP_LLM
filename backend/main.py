@@ -39,6 +39,7 @@ class ClassificationResponse(BaseModel):
     predictions: Dict[str, float]
     top_prediction: Dict[str, float]
     narrative: str
+    domain_info: Dict[str, Any]
 
 @app.on_event("startup")
 async def startup_event():
@@ -56,27 +57,35 @@ async def root():
 @app.post("/api/classify", response_model=ClassificationResponse)
 async def classify_image_endpoint(
     file: UploadFile = File(...),
-    labels: str = "a cat,a dog,a car,a tree",
 ):
     """
-    Classify an uploaded image using the new advanced zero-shot framework.
+    Classify an uploaded image using automatic label generation and scenario description.
     """
-    class_names = [label.strip() for label in labels.split(",") if label.strip()]
-    if not class_names:
-        raise HTTPException(status_code=400, detail="No valid labels provided")
-
     temp_path = ""
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
             tmp.write(await file.read())
             temp_path = tmp.name
         
-        # Use the new advanced classifier
-        scores = classifier.classify(temp_path, class_names)
+        # Generate automatic labels based on image analysis
+        class_names = classifier.generate_image_labels(temp_path)
+        logger.info(f"Auto-generated labels: {class_names}")
         
-        # For demonstration, we'll generate a simple narrative.
-        # In a full implementation, this would be more deeply integrated.
-        narrative = classifier.model_manager.generate_narrative(f"The image likely contains one of the following: {', '.join(class_names)}.")
+        # Use the new advanced classifier with automatic domain adaptation
+        scores, domain_info = classifier.classify(temp_path, class_names)
+        
+        # Get top predictions for scenario generation
+        top_classes = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:3]
+        top_labels = [label for label, _ in top_classes]
+        
+        # Generate detailed scenario description
+        domain_desc = classifier.domain_adapter.get_domain_info(domain_info['domain'])['description']
+        scenario_prompt = (
+            f"Describe this image in detail: The image appears to be from the {domain_info['domain']} domain. "
+            f"It likely contains: {', '.join(top_labels)}. Provide a vivid description of the scene, "
+            f"including the setting, objects, activities, and atmosphere."
+        )
+        narrative = classifier.model_manager.generate_narrative(scenario_prompt, max_length=150)
 
     except Exception as e:
         logger.error(f"Classification error: {e}")
@@ -95,4 +104,10 @@ async def classify_image_endpoint(
         "predictions": scores,
         "top_prediction": top_prediction,
         "narrative": narrative,
+        "domain_info": domain_info,
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
