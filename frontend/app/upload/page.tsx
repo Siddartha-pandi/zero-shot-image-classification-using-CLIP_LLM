@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import ImageUploadCard from "@/components/ImageUploadCard"
-import LabelInputBox from "@/components/LabelInputBox"
 import ResultsCard from "@/components/ResultsCard"
 import { Button } from "@/components/ui/button"
 import { Upload, Brain, ArrowLeft } from "lucide-react"
@@ -13,12 +12,19 @@ interface ClassificationResult {
   predictions: Record<string, number>
   top_prediction: Record<string, number>
   narrative: string
+  domain_info: {
+    domain: string
+    confidence: number
+    embedding_stats: {
+      mean: number
+      std: number
+    }
+  }
 }
 
 export default function UploadPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [labels, setLabels] = useState<string[]>([])
   const [results, setResults] = useState<ClassificationResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -32,13 +38,9 @@ export default function UploadPage() {
     setResults(null) // Clear previous results
   }
 
-  const handleLabelsChange = (newLabels: string[]) => {
-    setLabels(newLabels)
-  }
-
   const handleClassify = async () => {
-    if (!selectedImage || labels.length === 0) {
-      alert('Please select an image and enter at least one label')
+    if (!selectedImage) {
+      alert('Please select an image')
       return
     }
 
@@ -46,7 +48,6 @@ export default function UploadPage() {
     try {
       const formData = new FormData()
       formData.append('file', selectedImage)
-      formData.append('labels', labels.join(','))
 
       const response = await fetch('http://127.0.0.1:8000/api/classify', {
         method: 'POST',
@@ -90,11 +91,6 @@ export default function UploadPage() {
             onImageUpload={handleImageSelect}
             selectedImage={selectedImage}
           />
-          
-          <LabelInputBox 
-            labels={labels}
-            onLabelsChange={handleLabelsChange}
-          />
 
           <Card>
             <CardHeader>
@@ -106,7 +102,7 @@ export default function UploadPage() {
             <CardContent>
               <Button 
                 onClick={handleClassify}
-                disabled={!selectedImage || labels.length === 0 || isLoading}
+                disabled={!selectedImage || isLoading}
                 className="w-full"
                 size="lg"
               >
@@ -128,12 +124,6 @@ export default function UploadPage() {
                   Please upload an image first
                 </p>
               )}
-              
-              {selectedImage && labels.length === 0 && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Please enter at least one classification label
-                </p>
-              )}
             </CardContent>
           </Card>
         </div>
@@ -142,9 +132,8 @@ export default function UploadPage() {
         <div className="space-y-6">
           {results ? (
             <ResultsCard 
-              predictions={results.predictions}
-              topPrediction={results.top_prediction}
-              narrative={results.narrative}
+              results={results}
+              imagePreview={imagePreview}
             />
           ) : (
             <Card>
