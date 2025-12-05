@@ -5,9 +5,9 @@ prompt engineering, auto-tuning, and online continual learning.
 """
 import torch
 from PIL import Image
-from .models import get_model_manager
-from .prompt_engineering import PromptEngineer
-from .online_learning import OnlineTuner
+from models import get_model_manager
+from prompt_engineering import PromptEngineer
+from online_learning import OnlineTuner
 
 class AdvancedZeroShotFramework:
     def __init__(self):
