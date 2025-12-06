@@ -3,6 +3,7 @@ uvicorn[standard]>=0.24.0
 torch==2.9.1
 torchvision==0.24.1
 clip-by-openai>=1.0
+open_clip_torch>=2.20.0
 transformers>=4.35.0
 pillow>=10.0.0
 numpy>=1.24.0
