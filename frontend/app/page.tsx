@@ -5,40 +5,54 @@ import Link from "next/link"
 
 export default function HomePage() {
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="container mx-auto px-4 py-10 space-y-12 max-w-7xl">
       {/* Hero Section */}
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-5">
         <div className="flex items-center justify-center gap-3">
-          <Brain className="h-12 w-12 text-primary" />
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-2xl shadow-lg">
+            <Brain className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Adaptive CLIP-LLM Framework
           </h1>
         </div>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
           Advanced Zero-Shot Image Classification with Domain Adaptation and LLM-Enhanced Reasoning
         </p>
       </div>
 
       {/* Features Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="shadow-md hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-200 dark:hover:border-blue-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5 text-blue-500" />
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Upload className="h-6 w-6 text-blue-600" />
               Upload & Classify
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-base">
               Upload images and get instant zero-shot classification results with domain-adaptive tuning
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm text-muted-foreground space-y-1 mb-4">
-              <li>• CLIP-based visual embeddings</li>
-              <li>• Custom class labels</li>
-              <li>• Domain detection</li>
-              <li>• Auto-tuned predictions</li>
+            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2 mb-6">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                CLIP-based visual embeddings
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                Custom class labels
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                Domain detection
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                Auto-tuned predictions
+              </li>
             </ul>
-            <Button asChild className="w-full">
+            <Button asChild className="w-full rounded-lg shadow-sm hover:shadow-md transition-all">
               <Link href="/upload">
                 Start Classifying
               </Link>
@@ -46,24 +60,36 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="shadow-md hover:shadow-xl transition-all duration-300 border-2 hover:border-green-200 dark:hover:border-green-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-green-500" />
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <BarChart3 className="h-6 w-6 text-green-600" />
               Model Evaluation
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-base">
               Comprehensive evaluation with advanced metrics and cross-domain analysis
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm text-muted-foreground space-y-1 mb-4">
-              <li>• Top-1/Top-5 accuracy</li>
-              <li>• Precision, Recall, F1</li>
-              <li>• Mean Average Precision</li>
-              <li>• Cross-domain robustness</li>
+            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2 mb-6">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
+                Top-1/Top-5 accuracy
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
+                Precision, Recall, F1
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
+                Mean Average Precision
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
+                Cross-domain robustness
+              </li>
             </ul>
-            <Button asChild variant="outline" className="w-full">
+            <Button asChild variant="outline" className="w-full rounded-lg">
               <Link href="/evaluate">
                 Run Evaluation
               </Link>
@@ -71,24 +97,36 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow md:col-span-2 lg:col-span-1">
+        <Card className="shadow-md hover:shadow-xl transition-all duration-300 border-2 hover:border-purple-200 dark:hover:border-purple-800 md:col-span-2 lg:col-span-1">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-purple-500" />
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Brain className="h-6 w-6 text-purple-600" />
               LLM Reasoning
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-base">
               Get detailed explanations for predictions with AI-generated reasoning
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm text-muted-foreground space-y-1 mb-4">
-              <li>• Contextual explanations</li>
-              <li>• Domain-aware insights</li>
-              <li>• Confidence analysis</li>
-              <li>• Visual feature descriptions</li>
+            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2 mb-6">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                Contextual explanations
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                Domain-aware insights
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                Confidence analysis
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                Visual feature descriptions
+              </li>
             </ul>
-            <Button variant="secondary" className="w-full" disabled>
+            <Button variant="secondary" className="w-full rounded-lg" disabled>
               Auto-Generated
             </Button>
           </CardContent>
@@ -96,7 +134,7 @@ export default function HomePage() {
       </div>
 
       {/* Key Features */}
-      <Card>
+      <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5" />

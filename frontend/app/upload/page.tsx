@@ -69,18 +69,25 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Button>
-        </Link>
-        <div className="flex items-center gap-3">
-          <Upload className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Upload & Classify</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/">
+            <Button variant="outline" size="sm" className="rounded-lg">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Button>
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-xl">
+              <Upload className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Upload & Classify</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Zero-shot image classification with AI</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -92,35 +99,35 @@ export default function UploadPage() {
             selectedImage={selectedImage}
           />
 
-          <Card>
+          <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Brain className="h-5 w-5 text-purple-600" />
                 Classification
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <Button 
                 onClick={handleClassify}
                 disabled={!selectedImage || isLoading}
-                className="w-full"
+                className="w-full h-12 text-base rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
                 size="lg"
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Classifying...
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Analyzing Image...
                   </>
                 ) : (
                   <>
-                    <Brain className="h-4 w-4 mr-2" />
+                    <Brain className="h-5 w-5 mr-2" />
                     Classify Image
                   </>
                 )}
               </Button>
               
               {!selectedImage && (
-                <p className="text-sm text-muted-foreground mt-2">
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                   Please upload an image first
                 </p>
               )}
@@ -129,21 +136,24 @@ export default function UploadPage() {
         </div>
 
         {/* Right Column - Results */}
-        <div className="space-y-6">
+        <div>
           {results ? (
             <ResultsCard 
               results={results}
               imagePreview={imagePreview}
             />
           ) : (
-            <Card>
+            <Card className="shadow-md">
               <CardHeader>
-                <CardTitle>Classification Results</CardTitle>
+                <CardTitle className="text-xl">Classification Results</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12 text-muted-foreground">
-                  <Brain className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Upload an image and classify it to see results here</p>
+                <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+                  <div className="bg-gray-100 dark:bg-gray-800 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Brain className="h-10 w-10 opacity-50" />
+                  </div>
+                  <p className="text-base font-medium mb-2">No results yet</p>
+                  <p className="text-sm">Upload an image and classify it to see results here</p>
                 </div>
               </CardContent>
             </Card>
