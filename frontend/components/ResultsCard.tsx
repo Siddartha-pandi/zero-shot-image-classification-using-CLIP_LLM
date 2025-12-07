@@ -8,7 +8,7 @@ import { Brain, TrendingUp, Layers, Download, Sparkles } from "lucide-react"
 interface ResultsCardProps {
   results: {
     predictions: Record<string, number>
-    top_prediction: Record<string, number> | { label: string; score: number }
+    top_prediction: Record<string, number> | { label: string | number; score: number }
     narrative?: string
     explanation?: string
     reasoning?: {
@@ -71,7 +71,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
   let topScore: number
   if ('label' in results.top_prediction && 'score' in results.top_prediction) {
     // New format: { label: string, score: number }
-    topLabel = results.top_prediction.label
+    topLabel = String(results.top_prediction.label)
     topScore = results.top_prediction.score
   } else {
     // Old format: { "label_name": score }
@@ -301,7 +301,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
           ) : (
             <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6 border border-gray-300 dark:border-gray-600">
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                "{results.explanation || results.narrative || 'Classification completed using CLIP-based zero-shot learning.'}"
+                &quot;{results.explanation || results.narrative || 'Classification completed using CLIP-based zero-shot learning.'}&quot;
               </p>
             </div>
           )}
