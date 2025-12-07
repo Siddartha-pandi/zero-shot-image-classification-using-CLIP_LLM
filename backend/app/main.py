@@ -14,6 +14,7 @@ from .clip_service import (
 from .caption_service import generate_caption
 from .domain_service import infer_domain_from_hint
 from .llm_service import llm_reason_and_label, llm_narrative
+from .evaluation_service import evaluate_dataset
 
 app = FastAPI(title="Adaptive CLIP–LLM Backend")
 
@@ -116,5 +117,50 @@ async def api_classify(
     except RuntimeError as re:
         # e.g. no classes defined
         return JSONResponse(status_code=400, content={"error": str(re)})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/api/evaluate")
+async def api_evaluate(
+    files: List[UploadFile] = File(...),
+    labels: List[str] = Form(...),
+):
+    """
+    Evaluate the model on a test dataset.
+    
+    Expects:
+    - files: List of image files
+    - labels: Corresponding ground truth labels (comma-separated or list)
+    
+    Returns comprehensive metrics including accuracy, precision, recall, F1, mAP, etc.
+    """
+    try:
+        # Parse labels if they come as a single comma-separated string
+        if len(labels) == 1 and ',' in labels[0]:
+            labels = [l.strip() for l in labels[0].split(',')]
+        
+        if len(files) != len(labels):
+            return JSONResponse(
+                status_code=400, 
+                content={"error": f"Number of files ({len(files)}) must match number of labels ({len(labels)})"}
+            )
+        
+        # Read all files
+        file_data = []
+        for f in files:
+            contents = await f.read()
+            file_data.append((contents, f.filename or "unknown"))
+        
+        # Evaluate
+        metrics = await evaluate_dataset(file_data, labels)
+        
+        return {
+            "status": "ok",
+            "metrics": metrics
+        }
+        
+    except ValueError as ve:
+        return JSONResponse(status_code=400, content={"error": str(ve)})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

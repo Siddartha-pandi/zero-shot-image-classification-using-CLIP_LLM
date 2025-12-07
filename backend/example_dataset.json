@@ -1,0 +1,42 @@
+[
+  {
+    "path": "test_images/natural/cat_001.jpg",
+    "label": "cat",
+    "domain": "natural"
+  },
+  {
+    "path": "test_images/natural/cat_002.jpg",
+    "label": "cat",
+    "domain": "natural"
+  },
+  {
+    "path": "test_images/natural/dog_001.jpg",
+    "label": "dog",
+    "domain": "natural"
+  },
+  {
+    "path": "test_images/natural/car_001.jpg",
+    "label": "car",
+    "domain": "natural"
+  },
+  {
+    "path": "test_images/sketch/cat_sketch_001.jpg",
+    "label": "cat",
+    "domain": "sketch"
+  },
+  {
+    "path": "test_images/anime/character_001.jpg",
+    "label": "person",
+    "domain": "anime"
+  },
+  {
+    "path": "test_images/medical/xray_001.jpg",
+    "label": "chest_xray",
+    "domain": "medical"
+  },
+  {
+    "path": "test_images/satellite/building_001.jpg",
+    "label": "building",
+    "domain": "satellite"
+  }
+]

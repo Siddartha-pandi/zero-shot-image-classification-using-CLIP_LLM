@@ -7,9 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Upload, Brain, ArrowLeft, Sparkles, Image as ImageIcon, MessageSquare, Loader2 } from "lucide-react"
+import { Upload, Brain, ArrowLeft, Sparkles, Image as ImageIcon, Tags, Loader2, X } from "lucide-react"
 import Link from "next/link"
-import ClassManager from "@/components/ClassManager"
 import type { ClassificationResult } from "@/types"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
@@ -17,7 +16,8 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:800
 export default function UploadPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [userText, setUserText] = useState('')
+  const [labels, setLabels] = useState<string[]>([])
+  const [newLabel, setNewLabel] = useState('')
   const [results, setResults] = useState<ClassificationResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,9 +33,33 @@ export default function UploadPage() {
     setError(null)
   }
 
+  const handleAddLabel = () => {
+    const trimmed = newLabel.trim()
+    if (trimmed && !labels.includes(trimmed)) {
+      setLabels([...labels, trimmed])
+      setNewLabel('')
+    }
+  }
+
+  const handleRemoveLabel = (label: string) => {
+    setLabels(labels.filter(l => l !== label))
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAddLabel()
+    }
+  }
+
   const handleClassify = async () => {
     if (!selectedImage) {
       setError('Please select an image')
+      return
+    }
+
+    if (labels.length === 0) {
+      setError('Please add at least one label')
       return
     }
 
@@ -45,9 +69,8 @@ export default function UploadPage() {
     try {
       const formData = new FormData()
       formData.append('file', selectedImage)
-      if (userText.trim()) {
-        formData.append('user_text', userText.trim())
-      }
+      // Send labels as comma-separated string in user_text
+      formData.append('user_text', labels.join(', '))
 
       const response = await fetch(`${BACKEND_URL}/api/classify`, {
         method: 'POST',
@@ -110,28 +133,64 @@ export default function UploadPage() {
             selectedImage={selectedImage}
           />
 
-          {/* Optional User Hint */}
+          {/* Labels Input */}
           <Card className="shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <MessageSquare className="h-5 w-5 text-indigo-600" />
-                Domain Hint (Optional)
+                <Tags className="h-5 w-5 text-indigo-600" />
+                Classification Labels
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <Label htmlFor="userText" className="text-sm mb-2 block">
-                Provide context to improve accuracy
-              </Label>
-              <Input
-                id="userText"
-                placeholder="e.g., medical X-ray, anime character, satellite image..."
-                value={userText}
-                onChange={(e) => setUserText(e.target.value)}
-                className="mb-2"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Keywords like "x-ray", "anime", "satellite" help detect the domain automatically
-              </p>
+            <CardContent className="space-y-3">
+              <div>
+                <Label htmlFor="labels" className="text-sm mb-2 block">
+                  Add labels to classify the image
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="labels"
+                    placeholder="e.g., cat, dog, car..."
+                    value={newLabel}
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="flex-1"
+                  />
+                  <Button
+                    onClick={handleAddLabel}
+                    disabled={!newLabel.trim()}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <Tags className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Press Enter or click the button to add a label
+                </p>
+              </div>
+
+              {/* Label Chips */}
+              <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg min-h-[60px]">
+                {labels.length === 0 ? (
+                  <p className="text-sm text-gray-400 w-full text-center py-2">
+                    No labels added yet. Add labels above to classify.
+                  </p>
+                ) : (
+                  labels.map((label) => (
+                    <Badge
+                      key={label}
+                      variant="secondary"
+                      className="px-3 py-1 flex items-center gap-1 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700"
+                    >
+                      {label}
+                      <X
+                        className="h-3 w-3"
+                        onClick={() => handleRemoveLabel(label)}
+                      />
+                    </Badge>
+                  ))
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -145,7 +204,7 @@ export default function UploadPage() {
             <CardContent className="space-y-4">
               <Button 
                 onClick={handleClassify}
-                disabled={!selectedImage || isLoading}
+                disabled={!selectedImage || isLoading || labels.length === 0}
                 className="w-full h-12 text-base rounded-lg shadow-sm hover:shadow-md transition-all duration-300"
                 size="lg"
               >
@@ -170,14 +229,17 @@ export default function UploadPage() {
               
               {!selectedImage && !error && (
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                  Please upload an image first
+                  Please upload an image and add labels
+                </p>
+              )}
+              
+              {selectedImage && labels.length === 0 && !error && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                  Please add at least one label to classify
                 </p>
               )}
             </CardContent>
           </Card>
-
-          {/* Class Manager */}
-          <ClassManager />
         </div>
 
         {/* Right Column - Results */}
@@ -242,16 +304,6 @@ export default function UploadPage() {
                   <Badge variant="outline" className="capitalize">
                     {results.domain}
                   </Badge>
-                </div>
-
-                {/* Caption */}
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    Image Caption (BLIP)
-                  </h4>
-                  <p className="text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 p-3 rounded-lg italic">
-                    "{results.caption}"
-                  </p>
                 </div>
 
                 {/* LLM Explanation */}

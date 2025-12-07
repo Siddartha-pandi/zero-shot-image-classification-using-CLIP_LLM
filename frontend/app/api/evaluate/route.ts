@@ -1,19 +1,28 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000'
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const response = await fetch('http://localhost:8001/api/evaluate', {
+    const formData = await request.formData()
+    
+    const response = await fetch(`${BACKEND_URL}/api/evaluate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: formData
     })
+    
     if (!response.ok) {
-      throw new Error(`Backend error: ${response.status}`)
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+      throw new Error(errorData.error || `Backend error: ${response.status}`)
     }
+    
     const data = await response.json()
     return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Evaluation failed' }, { status: 500 })
+  } catch (error) {
+    console.error('Evaluation API error:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Evaluation failed' }, 
+      { status: 500 }
+    )
   }
 }

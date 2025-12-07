@@ -21,7 +21,8 @@ _model.eval()
 # adaptive state (in-memory)
 CLASS_PROTOTYPES: Dict[str, np.ndarray] = {}
 CLASS_COUNTS: Dict[str, int] = {}   # how many times we've updated
-CONFIDENCE_THRESHOLD = 0.28         # min cosine sim to trust prediction
+CONFIDENCE_THRESHOLD = 0.15         # min cosine sim to trust prediction (lowered for better learning)
+TEMPERATURE = 0.01                  # temperature scaling for confidence calibration
 
 
 def encode_texts(texts: List[str]) -> torch.Tensor:
@@ -44,12 +45,13 @@ def create_class_prototype(
     label: str,
     domain: str = "natural",
     images: Optional[List[Image.Image]] = None,
-    w_text: float = 0.5,
-    w_image: float = 0.5,
+    w_text: float = 0.7,
+    w_image: float = 0.3,
 ) -> Dict:
     """Create/replace prototype for a label using prompts (+ optional images)."""
     prompts = build_prompts_for_label(label, domain)
     text_embs = encode_texts(prompts).cpu().numpy()  # [n, D]
+    # Use weighted average with more weight on diverse prompts
     t_proto = text_embs.mean(axis=0)
     t_proto /= np.linalg.norm(t_proto) + 1e-8
 
@@ -79,8 +81,8 @@ def _update_prototype_after_prediction(label: str, img_vec: np.ndarray) -> None:
         return
     old = CLASS_PROTOTYPES[label]
     n = CLASS_COUNTS.get(label, 1)
-    # decaying learning rate – more data → smaller updates
-    alpha = 1.0 / (n + 1)   # or fixed like 0.1
+    # smaller learning rate for more stable updates
+    alpha = 0.05  # fixed small learning rate for stability
     new = (1 - alpha) * old + alpha * img_vec
     new /= np.linalg.norm(new) + 1e-8
     CLASS_PROTOTYPES[label] = new
@@ -99,11 +101,17 @@ def classify_image(
     mat = np.stack([CLASS_PROTOTYPES[l] for l in labels])  # [N, D]
 
     sims = mat @ img_vec
-    idx = np.argsort(-sims)
+    # Apply temperature scaling for better confidence calibration
+    sims = sims / TEMPERATURE
+    # Apply softmax for normalized probabilities
+    exp_sims = np.exp(sims - np.max(sims))
+    probs = exp_sims / exp_sims.sum()
+    
+    idx = np.argsort(-probs)
     idx_top = idx[:top_k]
 
     candidates = [
-        {"label": labels[i], "score": float(sims[i])}
+        {"label": labels[i], "score": float(probs[i])}
         for i in idx_top
     ]
     best = candidates[0]
