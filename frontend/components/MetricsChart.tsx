@@ -1,24 +1,13 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { BarChart3 } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
+import { BarChart3, Target, Layers } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-interface Metrics {
-  top1_accuracy: number
-  top5_accuracy: number
-  precision_weighted: number
-  recall_weighted: number
-  f1_weighted: number
-  f1_macro: number
-  map: number
-  cross_domain_drop: number
-  ece: number
-}
+import type { EvaluationMetrics } from '@/types'
 
 interface MetricsChartProps {
-  metrics?: Metrics
+  metrics?: EvaluationMetrics
   loading?: boolean
   className?: string
 }
@@ -172,6 +161,133 @@ export default function MetricsChart({
           </div>
         </CardContent>
       </Card>
+
+      {/* Domain Performance Chart */}
+      {metrics.domain_performance && Object.keys(metrics.domain_performance).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Layers className="h-5 w-5" />
+              Performance by Domain
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={Object.entries(metrics.domain_performance).map(([domain, perf]) => ({
+                    name: domain,
+                    accuracy: perf.accuracy * 100,
+                    samples: perf.samples
+                  }))}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="hsl(var(--foreground))"
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis 
+                    stroke="hsl(var(--foreground))"
+                    tick={{ fontSize: 12 }}
+                    domain={[0, 100]}
+                    label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft' }}
+                  />
+                  <Tooltip 
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+                            <p className="font-medium">{payload[0].payload.name}</p>
+                            <p className="text-primary">Accuracy: {payload[0].value?.toFixed(1)}%</p>
+                            <p className="text-sm text-muted-foreground">Samples: {payload[0].payload.samples}</p>
+                          </div>
+                        )
+                      }
+                      return null
+                    }}
+                  />
+                  <Bar dataKey="accuracy" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Per-Class Performance - Top/Bottom Classes */}
+      {metrics.per_class_metrics && Object.keys(metrics.per_class_metrics).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Top & Bottom Performing Classes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Top 5 Classes */}
+              <div>
+                <h4 className="font-medium mb-3 text-green-600">Top 5 Classes (by F1)</h4>
+                <div className="space-y-2">
+                  {Object.entries(metrics.per_class_metrics)
+                    .sort(([, a], [, b]) => b.f1 - a.f1)
+                    .slice(0, 5)
+                    .map(([className, classMetrics], idx) => (
+                      <div key={idx} className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium truncate">{className}</span>
+                          <span className="text-green-600">{(classMetrics.f1 * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div 
+                            className="h-2 rounded-full bg-green-500"
+                            style={{ width: `${classMetrics.f1 * 100}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>P: {(classMetrics.precision * 100).toFixed(1)}%</span>
+                          <span>R: {(classMetrics.recall * 100).toFixed(1)}%</span>
+                          <span>{classMetrics.samples} samples</span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Bottom 5 Classes */}
+              <div>
+                <h4 className="font-medium mb-3 text-red-600">Bottom 5 Classes (by F1)</h4>
+                <div className="space-y-2">
+                  {Object.entries(metrics.per_class_metrics)
+                    .sort(([, a], [, b]) => a.f1 - b.f1)
+                    .slice(0, 5)
+                    .map(([className, classMetrics], idx) => (
+                      <div key={idx} className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium truncate">{className}</span>
+                          <span className="text-red-600">{(classMetrics.f1 * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div 
+                            className="h-2 rounded-full bg-red-500"
+                            style={{ width: `${classMetrics.f1 * 100}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>P: {(classMetrics.precision * 100).toFixed(1)}%</span>
+                          <span>R: {(classMetrics.recall * 100).toFixed(1)}%</span>
+                          <span>{classMetrics.samples} samples</span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Additional Metrics */}
       <Card>

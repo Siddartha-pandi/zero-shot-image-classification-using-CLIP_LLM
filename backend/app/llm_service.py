@@ -76,15 +76,37 @@ Respond ONLY as JSON:
         response = model.generate_content(
             prompt,
             generation_config=genai.types.GenerationConfig(
-                temperature=0.2,
+                temperature=0.1,
+                max_output_tokens=100,
             )
         )
-        return json.loads(response.text)
-    except Exception:
+        
+        # Clean response text - remove markdown code blocks if present
+        response_text = response.text.strip()
+        if response_text.startswith("```"):
+            # Remove markdown code blocks
+            lines = response_text.split("\n")
+            response_text = "\n".join([line for line in lines if not line.startswith("```")])
+            response_text = response_text.strip()
+        
+        # Try to parse JSON
+        parsed = json.loads(response_text)
+        return parsed
+        
+    except json.JSONDecodeError as e:
+        print(f"JSON parse error: {e}")
+        print(f"Response text: {response.text}")
         top = candidates[0]
         return {
             "label": top["label"],
             "reason": "Fallback to top CLIP candidate due to JSON parse error.",
+        }
+    except Exception as e:
+        print(f"LLM error: {e}")
+        top = candidates[0]
+        return {
+            "label": top["label"],
+            "reason": "Fallback to top CLIP candidate due to LLM error.",
         }
 
 
@@ -94,21 +116,30 @@ def llm_narrative(
     user_hint: str,
     domain: str,
 ) -> str:
-    """Generate 3–5 sentence narrative description."""
+    """Generate detailed narrative description."""
     if model is None:
         return caption  # fallback: just caption
 
     prompt = f"""
-You write descriptive but factual narratives about images.
+You are an expert image analyst writing detailed, descriptive narratives about images.
 
 Caption: "{caption}"
 Domain: {domain}
-Likely classes: {candidates}
+Detected classes with confidence: {candidates}
 User hint: "{user_hint}"
 
-Write a 3–5 sentence narrative describing the image.
-Do NOT invent impossible details.
-Return ONLY the narrative text.
+Write a comprehensive, detailed 8-12 sentence narrative describing the image. Include:
+1. Main subjects or objects present and their characteristics
+2. Visual details: colors, textures, patterns, shapes, and materials
+3. The setting, environment, and background elements
+4. Spatial relationships and composition (foreground, middle, background)
+5. Lighting, atmosphere, and mood
+6. Actions, poses, or states of subjects
+7. Notable features, unique aspects, or interesting details
+8. Overall impression and context
+
+Be highly descriptive, vivid, and engaging while remaining factual. Use rich, varied vocabulary to paint a complete picture. Do NOT invent details that aren't supported by the detected classes and caption.
+Return ONLY the narrative text as a flowing paragraph.
 """
 
     try:
@@ -116,6 +147,7 @@ Return ONLY the narrative text.
             prompt,
             generation_config=genai.types.GenerationConfig(
                 temperature=0.5,
+                max_output_tokens=500,
             )
         )
         return response.text.strip()

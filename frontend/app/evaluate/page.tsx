@@ -7,55 +7,75 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import MetricsChart from '@/components/MetricsChart'
 import MetricsTable from '@/components/MetricsTable'
-import { Upload, FileText, Trash2, Play, Download } from 'lucide-react'
+import { Upload, FileText, Trash2, Play, Download, FileUp, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-
-interface EvaluationMetrics {
-  top1_accuracy: number
-  top5_accuracy: number
-  precision_weighted: number
-  recall_weighted: number
-  f1_weighted: number
-  precision_macro: number
-  recall_macro: number
-  f1_macro: number
-  map: number
-  cross_domain_drop: number
-  ece: number
-  num_samples: number
-  num_classes: number
-  per_class_metrics?: Record<string, {
-    precision: number
-    recall: number
-    f1: number
-    samples: number
-  }>
-  domain_performance?: Record<string, {
-    accuracy: number
-    samples: number
-  }>
-}
+import type { EvaluationMetrics } from '@/types'
 
 interface FileWithLabel {
   file: File
   label: string
+  status?: 'pending' | 'processing' | 'success' | 'error'
 }
 
 export default function EvaluatePage() {
   const [files, setFiles] = useState<FileWithLabel[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
   const [metrics, setMetrics] = useState<EvaluationMetrics | null>(null)
   const [error, setError] = useState<string>('')
+  const [success, setSuccess] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const csvInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
     const newFiles = selectedFiles.map(file => ({
       file,
-      label: ''
+      label: '',
+      status: 'pending' as const
     }))
     setFiles(prev => [...prev, ...newFiles])
     setError('')
+    setSuccess('')
+  }
+
+  const handleCSVImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string
+        const lines = text.split('\n').filter(line => line.trim())
+        
+        // Parse CSV: filename,label
+        const labelMap = new Map<string, string>()
+        lines.forEach((line, idx) => {
+          if (idx === 0 && line.toLowerCase().includes('filename')) return // Skip header
+          const [filename, label] = line.split(',').map(s => s.trim())
+          if (filename && label) {
+            labelMap.set(filename, label)
+          }
+        })
+
+        // Apply labels to matching files
+        setFiles(prev => prev.map(f => {
+          const label = labelMap.get(f.file.name)
+          return label ? { ...f, label } : f
+        }))
+
+        setSuccess(`Imported labels for ${labelMap.size} files`)
+        setTimeout(() => setSuccess(''), 3000)
+      } catch (err) {
+        setError('Failed to parse CSV file. Expected format: filename,label')
+      }
+    }
+    reader.readAsText(file)
+    
+    if (csvInputRef.current) {
+      csvInputRef.current.value = ''
+    }
   }
 
   const handleLabelChange = (index: number, label: string) => {
@@ -72,6 +92,8 @@ export default function EvaluatePage() {
     setFiles([])
     setMetrics(null)
     setError('')
+    setSuccess('')
+    setProgress(0)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -92,6 +114,11 @@ export default function EvaluatePage() {
 
     setIsLoading(true)
     setError('')
+    setSuccess('')
+    setProgress(0)
+
+    // Update file statuses to processing
+    setFiles(prev => prev.map(f => ({ ...f, status: 'processing' as const })))
 
     try {
       const formData = new FormData()
@@ -106,10 +133,14 @@ export default function EvaluatePage() {
         formData.append('labels', label.trim().toLowerCase())
       })
 
+      setProgress(30)
+
       const response = await fetch('/api/evaluate', {
         method: 'POST',
         body: formData
       })
+
+      setProgress(80)
 
       if (!response.ok) {
         const errorData = await response.json()
@@ -118,16 +149,23 @@ export default function EvaluatePage() {
 
       const data = await response.json()
       
+      setProgress(100)
+
       if (data.status === 'ok' && data.metrics) {
         setMetrics(data.metrics)
+        setFiles(prev => prev.map(f => ({ ...f, status: 'success' as const })))
+        setSuccess(`Successfully evaluated ${files.length} images`)
+        setTimeout(() => setSuccess(''), 3000)
       } else {
         throw new Error('Invalid response format')
       }
     } catch (err) {
       console.error('Evaluation error:', err)
       setError(err instanceof Error ? err.message : 'Failed to evaluate model')
+      setFiles(prev => prev.map(f => ({ ...f, status: 'error' as const })))
     } finally {
       setIsLoading(false)
+      setTimeout(() => setProgress(0), 1000)
     }
   }
 
@@ -197,12 +235,61 @@ export default function EvaluatePage() {
                 className="cursor-pointer"
               />
             </div>
+            <div>
+              <Input
+                ref={csvInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleCSVImport}
+                className="hidden"
+                id="csv-upload"
+              />
+              <Button 
+                onClick={() => csvInputRef.current?.click()} 
+                variant="outline"
+                title="Import labels from CSV (format: filename,label)"
+              >
+                <FileUp className="h-4 w-4 mr-2" />
+                Import CSV
+              </Button>
+            </div>
             {files.length > 0 && (
               <Button onClick={handleClearAll} variant="outline" size="icon">
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
           </div>
+
+          {/* Success/Error Messages */}
+          {success && (
+            <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded-lg flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              {success}
+            </div>
+          )}
+          
+          {error && (
+            <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </div>
+          )}
+
+          {/* Progress Bar */}
+          {isLoading && progress > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Processing...</span>
+                <span className="font-medium">{progress}%</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* File List */}
           {files.length > 0 && (
@@ -219,6 +306,22 @@ export default function EvaluatePage() {
               
               {files.map((item, index) => (
                 <div key={index} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                  {/* Status Indicator */}
+                  <div className="flex-shrink-0">
+                    {item.status === 'success' && (
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    )}
+                    {item.status === 'error' && (
+                      <AlertCircle className="h-5 w-5 text-red-500" />
+                    )}
+                    {item.status === 'processing' && (
+                      <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+                    )}
+                    {(!item.status || item.status === 'pending') && (
+                      <div className="h-5 w-5 rounded-full border-2 border-muted-foreground" />
+                    )}
+                  </div>
+
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{item.file.name}</p>
                     <p className="text-xs text-muted-foreground">
@@ -237,6 +340,7 @@ export default function EvaluatePage() {
                       value={item.label}
                       onChange={(e) => handleLabelChange(index, e.target.value)}
                       className="h-9"
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -245,6 +349,7 @@ export default function EvaluatePage() {
                     variant="ghost"
                     size="icon"
                     className="h-9 w-9"
+                    disabled={isLoading}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

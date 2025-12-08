@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -10,27 +11,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { BarChart3, TrendingUp, TrendingDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { BarChart3, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-interface Metrics {
-  top1_accuracy: number
-  top5_accuracy: number
-  precision_weighted: number
-  recall_weighted: number
-  f1_weighted: number
-  precision_macro: number
-  recall_macro: number
-  f1_macro: number
-  map: number
-  cross_domain_drop: number
-  ece: number
-  num_samples: number
-  num_classes: number
-}
+import type { EvaluationMetrics } from '@/types'
 
 interface MetricsTableProps {
-  metrics?: Metrics
+  metrics?: EvaluationMetrics
   loading?: boolean
   className?: string
 }
@@ -40,6 +27,9 @@ export default function MetricsTable({
   loading = false,
   className
 }: MetricsTableProps) {
+  const [showPerClass, setShowPerClass] = useState(false)
+  const [showDomains, setShowDomains] = useState(false)
+
   if (loading) {
     return (
       <Card className={cn("w-full", className)}>
@@ -234,6 +224,99 @@ export default function MetricsTable({
             </div>
           ))}
         </div>
+
+        {/* Per-Class Metrics - Expandable */}
+        {metrics.per_class_metrics && Object.keys(metrics.per_class_metrics).length > 0 && (
+          <div className="mt-6 border-t pt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowPerClass(!showPerClass)}
+              className="w-full justify-between"
+            >
+              <span className="font-semibold">Per-Class Metrics ({Object.keys(metrics.per_class_metrics).length} classes)</span>
+              {showPerClass ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+            
+            {showPerClass && (
+              <div className="mt-4 max-h-96 overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Class</TableHead>
+                      <TableHead>Precision</TableHead>
+                      <TableHead>Recall</TableHead>
+                      <TableHead>F1-Score</TableHead>
+                      <TableHead>Samples</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Object.entries(metrics.per_class_metrics)
+                      .sort(([, a], [, b]) => b.f1 - a.f1)
+                      .map(([className, classMetrics]) => (
+                        <TableRow key={className}>
+                          <TableCell className="font-medium">{className}</TableCell>
+                          <TableCell className="font-mono">{formatPercentage(classMetrics.precision)}</TableCell>
+                          <TableCell className="font-mono">{formatPercentage(classMetrics.recall)}</TableCell>
+                          <TableCell className="font-mono">
+                            <span className={cn(
+                              "px-2 py-1 rounded",
+                              classMetrics.f1 >= 0.8 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
+                              classMetrics.f1 >= 0.6 ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" :
+                              "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                            )}>
+                              {formatPercentage(classMetrics.f1)}
+                            </span>
+                          </TableCell>
+                          <TableCell>{classMetrics.samples}</TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Domain Performance - Expandable */}
+        {metrics.domain_performance && Object.keys(metrics.domain_performance).length > 0 && (
+          <div className="mt-6 border-t pt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowDomains(!showDomains)}
+              className="w-full justify-between"
+            >
+              <span className="font-semibold">Domain Performance ({Object.keys(metrics.domain_performance).length} domains)</span>
+              {showDomains ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+            
+            {showDomains && (
+              <div className="mt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Domain</TableHead>
+                      <TableHead>Accuracy</TableHead>
+                      <TableHead>Samples</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Object.entries(metrics.domain_performance)
+                      .sort(([, a], [, b]) => b.accuracy - a.accuracy)
+                      .map(([domain, perf]) => (
+                        <TableRow key={domain}>
+                          <TableCell className="font-medium">{domain}</TableCell>
+                          <TableCell className="font-mono">{formatPercentage(perf.accuracy)}</TableCell>
+                          <TableCell>{perf.samples}</TableCell>
+                          <TableCell>{getScoreBadge(perf.accuracy, { good: 0.8, fair: 0.6 })}</TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

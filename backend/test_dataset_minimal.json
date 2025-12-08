@@ -1,0 +1,17 @@
+[
+  {
+    "path": "test_images/cat.jpg",
+    "label": "cat",
+    "domain": "natural"
+  },
+  {
+    "path": "test_images/dog.jpg",
+    "label": "dog",
+    "domain": "natural"
+  },
+  {
+    "path": "test_images/car.jpg",
+    "label": "car",
+    "domain": "natural"
+  }
+]

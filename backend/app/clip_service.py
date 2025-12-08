@@ -72,7 +72,7 @@ def create_class_prototype(
     # initialize count with at least 1 to keep alpha small
     CLASS_COUNTS[label] = CLASS_COUNTS.get(label, 1) + max(1, num_images)
 
-    return {"num_images": num_images, "norm": norm}
+    return {"num_images": num_images, "norm": float(norm)}
 
 
 def _update_prototype_after_prediction(label: str, img_vec: np.ndarray) -> None:
