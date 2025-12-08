@@ -116,3 +116,49 @@ export interface ClassificationResult {
   llm_reranking_used?: boolean
   temperature?: number
 }
+
+// Evaluation types
+export interface PerClassMetrics {
+  precision: number
+  recall: number
+  f1: number
+  samples: number
+}
+
+export interface DomainPerformance {
+  accuracy: number
+  samples: number
+}
+
+export interface EvaluationMetrics {
+  top1_accuracy: number
+  top5_accuracy: number
+  precision_weighted: number
+  recall_weighted: number
+  f1_weighted: number
+  precision_macro: number
+  recall_macro: number
+  f1_macro: number
+  map: number
+  cross_domain_drop: number
+  ece: number
+  num_samples: number
+  num_classes: number
+  per_class_metrics?: Record<string, PerClassMetrics>
+  domain_performance?: Record<string, DomainPerformance>
+}
+
+export interface EvaluationResult {
+  status: string
+  metrics: EvaluationMetrics
+}
+
+export interface EvaluationExport {
+  timestamp: string
+  num_samples: number
+  metrics: EvaluationMetrics
+  files: Array<{
+    filename: string
+    label: string
+  }>
+}
