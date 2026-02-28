@@ -10,10 +10,13 @@ from .clip_service import (
     classify_image,
     create_class_prototype,
     list_classes,
+    encode_image,
+    compute_text_similarity,
+    CLASS_PROTOTYPES,
 )
 from .caption_service import generate_caption
-from .domain_service import infer_domain_from_hint
-from .llm_service import llm_reason_and_label, llm_narrative
+from .domain_service import infer_domain_from_hint, infer_domain
+from .llm_service import llm_reason_and_label, llm_narrative, extract_objects
 from .evaluation_service import evaluate_dataset
 
 app = FastAPI(title="Adaptive CLIP–LLM Backend")
@@ -35,6 +38,72 @@ def health():
 @app.get("/api/classes")
 def api_classes():
     return {"classes": list_classes()}
+
+
+@app.post("/api/init-medical-classes")
+def api_init_medical_classes():
+    """Initialize default medical imaging classes."""
+    try:
+        medical_classes = [
+            "lungs",
+            "rib cage",
+            "pulmonary opacity",
+            "heart",
+            "chest",
+            "normal chest x-ray",
+            "pneumonia",
+            "pleural effusion",
+            "atelectasis",
+            "cardiomegaly"
+        ]
+        
+        # Clear existing classes
+        CLASS_PROTOTYPES.clear()
+        
+        # Create prototypes for each medical class
+        for label in medical_classes:
+            create_class_prototype(label=label, domain="medical", images=None)
+        
+        return {
+            "status": "ok",
+            "message": f"Initialized {len(medical_classes)} medical classes",
+            "classes": medical_classes
+        }
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/api/init-default-classes")
+def api_init_default_classes(domain: str = Form(default="natural")):
+    """Initialize default classes for a given domain."""
+    try:
+        default_classes = {
+            "natural": ["dog", "cat", "bird", "car", "tree", "person", "building", "flower"],
+            "medical": [
+                "lungs", "rib cage", "pulmonary opacity", "heart", "chest",
+                "normal chest x-ray", "pneumonia", "pleural effusion", "atelectasis", "cardiomegaly"
+            ],
+            "anime": ["anime character", "manga character", "cartoon character"],
+            "satellite": ["road", "building", "vegetation", "water", "urban area"],
+            "sketch": ["portrait sketch", "landscape sketch", "object sketch"]
+        }
+        
+        classes = default_classes.get(domain, default_classes["natural"])
+        
+        # Clear existing classes
+        CLASS_PROTOTYPES.clear()
+        
+        # Create prototypes for each class
+        for label in classes:
+            create_class_prototype(label=label, domain=domain, images=None)
+        
+        return {
+            "status": "ok",
+            "message": f"Initialized {len(classes)} {domain} classes",
+            "classes": classes
+        }
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @app.post("/api/add-class")
@@ -82,16 +151,32 @@ async def api_classify(
         contents = await file.read()
         img = Image.open(io.BytesIO(contents)).convert("RGB")
 
-        # 1) infer domain from hint
-        domain = infer_domain_from_hint(user_text)
-
-        # 2) CLIP classification (auto-tuning happens inside)
-        cls = classify_image(img, top_k=5)
-
-        # 3) Caption
+        # 1) Generate caption first (needed for domain detection)
         caption = generate_caption(img)
 
-        # 4) LLM reasoning + narrative
+        # 2) Infer domain from both caption and user hint
+        domain = infer_domain(caption=caption, user_hint=user_text or "")
+
+        # 3) Auto-initialize classes if none exist
+        if not CLASS_PROTOTYPES:
+            # Initialize based on detected domain
+            if domain == "medical":
+                medical_classes = [
+                    "lungs", "rib cage", "pulmonary opacity", "heart", "chest",
+                    "normal chest x-ray", "pneumonia", "pleural effusion", "atelectasis", "cardiomegaly"
+                ]
+                for label in medical_classes:
+                    create_class_prototype(label=label, domain="medical", images=None)
+            else:
+                # Initialize with general classes
+                general_classes = ["dog", "cat", "bird", "car", "tree", "person", "building", "flower"]
+                for label in general_classes:
+                    create_class_prototype(label=label, domain="natural", images=None)
+
+        # 4) CLIP classification (auto-tuning happens inside)
+        cls = classify_image(img, top_k=5)
+
+        # 5) LLM reasoning + narrative
         reasoning = llm_reason_and_label(
             caption=caption,
             candidates=cls["candidates"],
@@ -105,14 +190,36 @@ async def api_classify(
             domain=domain,
         )
 
+        # 6) Extract objects from image
+        objects = extract_objects(
+            caption=caption,
+            candidates=cls["candidates"],
+            domain=domain,
+        )
+
+        # 7) Compute CLIP similarity scores for validation
+        img_vec = encode_image(img)
+        domain_similarity = compute_text_similarity(img_vec, domain)
+        caption_similarity = compute_text_similarity(img_vec, caption)
+
+        # 8) Compute final confidence using the specified formula:
+        # Confidence = 0.6 * DomainSim + 0.4 * CaptionSim
+        confidence_score = 0.6 * domain_similarity + 0.4 * caption_similarity
+
+        # 9) Return structured JSON response with all required fields
         return {
-            "label": reasoning["label"],
-            "confidence": cls["confidence"],
-            "candidates": cls["candidates"],
+            "domain": domain,
+            "confidence": confidence_score,
+            "objects": objects,
             "caption": caption,
             "explanation": reasoning["reason"],
+            "label": reasoning["label"],
             "narrative": narrative,
-            "domain": domain,
+            "candidates": cls["candidates"],
+            "validation": {
+                "domain_similarity": domain_similarity,
+                "caption_similarity": caption_similarity,
+            }
         }
     except RuntimeError as re:
         # e.g. no classes defined

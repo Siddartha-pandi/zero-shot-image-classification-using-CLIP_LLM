@@ -130,15 +130,6 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Image Preview with Demo or Uploaded */}
-        <div className="relative rounded-xl overflow-hidden border-2 border-gray-100 shadow-sm">
-          <img 
-            src={imagePreview || "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800&q=80"} 
-            alt="Classified image" 
-            className="w-full h-56 object-cover"
-          />
-        </div>
-
         {/* Domain Adaptation Info */}
         {results.domain_info && (
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800 shadow-sm">
@@ -207,16 +198,8 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
         <CardTitle className="text-2xl font-bold">Zero-Shot Classification Output</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Main Classification with Image */}
-        <div className="flex items-start gap-6">
-          <div className="relative rounded-2xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 shadow-md w-48 h-48 flex-shrink-0">
-            <img 
-              src={imagePreview || "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800&q=80"} 
-              alt="Classified image" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-          
+        {/* Main Classification */}
+        <div>
           <div className="flex-1">
             <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               {topLabel.replace(/_/g, ' ')}
@@ -229,7 +212,6 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
               </p>
             )}
           </div>
-        </div>
 
         {/* Attributes Extracted */}
         {results.visual_features && results.visual_features.length > 0 && (
@@ -248,64 +230,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
           </div>
         )}
 
-        {/* Reasoning (LLM) */}
-        <div>
-          <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-            Reasoning (LLM)
-            {results.llm_reranking_used && (
-              <Badge className="text-xs bg-purple-600">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Enhanced
-              </Badge>
-            )}
-          </h4>
-          
-          {results.reasoning ? (
-            <div className="space-y-4">
-              {/* Summary */}
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 border border-gray-300 dark:border-gray-600">
-                <p className="text-gray-700 dark:text-gray-300 font-medium">
-                  {results.reasoning.summary}
-                </p>
-              </div>
-              
-              {/* Key Attributes */}
-              {results.reasoning.attributes && results.reasoning.attributes.length > 0 && (
-                <div>
-                  <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Key Factors:
-                  </h5>
-                  <div className="grid grid-cols-2 gap-2">
-                    {results.reasoning.attributes.map((attr, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs justify-start">
-                        {attr}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Detailed Reasoning */}
-              <details className="group">
-                <summary className="cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 flex items-center gap-2">
-                  <span className="transform group-open:rotate-90 transition-transform">▶</span>
-                  Detailed Reasoning
-                </summary>
-                <div className="mt-3 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {results.reasoning.detailed_reasoning}
-                  </p>
-                </div>
-              </details>
-            </div>
-          ) : (
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6 border border-gray-300 dark:border-gray-600">
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                &quot;{results.explanation || results.narrative || 'Classification completed using CLIP-based zero-shot learning.'}&quot;
-              </p>
-            </div>
-          )}
-        </div>
+
 
         {/* Additional Details (Collapsible) */}
         {results.reasoning_chain && (

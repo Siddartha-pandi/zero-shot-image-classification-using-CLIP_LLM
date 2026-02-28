@@ -1,6 +1,6 @@
 "use client"
 
-import { Brain, Upload, BarChart3, Home } from "lucide-react"
+import { Brain, Upload, Home } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -19,18 +19,13 @@ import {
 const items = [
   {
     title: "Home",
-    url: "/",
+    url: "/home",
     icon: Home,
   },
   {
     title: "Upload & Classify",
     url: "/upload",
     icon: Upload,
-  },
-  {
-    title: "Evaluate Model",
-    url: "/evaluate",
-    icon: BarChart3,
   },
 ]
 

@@ -6,13 +6,18 @@ export interface Candidate {
 }
 
 export interface ClassificationResult {
-  label: string
+  domain: string
   confidence: number
-  candidates: Candidate[]
+  objects: string[]
   caption: string
   explanation: string
+  label: string
   narrative: string
-  domain: string
+  candidates: Candidate[]
+  validation?: {
+    domain_similarity: number
+    caption_similarity: number
+  }
 }
 
 export interface AddClassRequest {

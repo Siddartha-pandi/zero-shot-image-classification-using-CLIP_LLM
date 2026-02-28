@@ -129,3 +129,20 @@ def classify_image(
 
 def list_classes() -> List[str]:
     return sorted(CLASS_PROTOTYPES.keys())
+
+
+def compute_text_similarity(img_vec: np.ndarray, text: str) -> float:
+    """
+    Compute cosine similarity between image embedding and text embedding.
+    Returns a float between 0 and 1 representing the similarity.
+    """
+    text_tokens = _tokenizer([text]).to(DEVICE)
+    with torch.no_grad():
+        text_feats = _model.encode_text(text_tokens)
+        text_feats /= text_feats.norm(dim=-1, keepdim=True)
+    text_vec = text_feats.cpu().numpy()[0]
+    
+    # Compute cosine similarity (both vectors are already normalized)
+    similarity = np.dot(img_vec, text_vec)
+    # Clamp to [0, 1] range
+    return float(np.clip(similarity, 0, 1))

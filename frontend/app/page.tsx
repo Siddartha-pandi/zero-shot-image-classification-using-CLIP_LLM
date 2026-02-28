@@ -1,242 +1,178 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { signIn } from "@/auth"
 import { Button } from "@/components/ui/button"
-import { Brain, Upload, BarChart3, Zap, Target, Info } from "lucide-react"
-import Link from "next/link"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Brain, Sparkles, Shield, Zap } from "lucide-react"
 
-export default function HomePage() {
+export default function LandingPage() {
   return (
-    <div className="container mx-auto px-4 py-10 space-y-12 max-w-7xl">
-      {/* Hero Section */}
-      <div className="text-center space-y-5">
-        <div className="flex items-center justify-center gap-3">
-          <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-2xl shadow-lg">
-            <Brain className="h-10 w-10 text-white" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      <div className="container mx-auto px-4 py-12 max-w-6xl">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left Column - Hero Content */}
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                <Sparkles className="h-4 w-4" />
+                AI-Powered Image Classification
+              </div>
+              
+              <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Adaptive CLIP-LLM
+                </span>
+                <br />
+                <span className="text-gray-900 dark:text-white">
+                  Framework
+                </span>
+              </h1>
+              
+              <p className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
+                Advanced Zero-Shot Image Classification with Domain Adaptation and LLM-Enhanced Reasoning
+              </p>
+            </div>
+
+            {/* Features */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg">
+                  <Brain className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Zero-Shot</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">No training needed</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-100 dark:bg-purple-900 p-2 rounded-lg">
+                  <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Domain Adaptive</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Auto-tuned</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="bg-indigo-100 dark:bg-indigo-900 p-2 rounded-lg">
+                  <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">LLM Powered</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">AI reasoning</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="bg-pink-100 dark:bg-pink-900 p-2 rounded-lg">
+                  <Shield className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Secure</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Protected access</p>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="pt-4">
+              <form
+                action={async () => {
+                  "use server"
+                  await signIn("google", { redirectTo: "/home" })
+                }}
+              >
+                <Button 
+                  type="submit"
+                  size="lg" 
+                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+                >
+                  <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    />
+                  </svg>
+                  Sign in with Google
+                </Button>
+              </form>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                Secure authentication powered by Google
+              </p>
+            </div>
           </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Adaptive CLIP-LLM Framework
-          </h1>
+
+          {/* Right Column - Preview Card */}
+          <div className="hidden lg:block">
+            <Card className="shadow-2xl border-2 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-6 w-6 text-blue-600" />
+                  Platform Features
+                </CardTitle>
+                <CardDescription>
+                  What you&apos;ll get access to
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950">
+                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white">Upload & Classify Images</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Instant classification with custom labels
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-950">
+                    <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white">LLM Reasoning</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        AI-generated explanations for predictions
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-950">
+                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white">Domain Detection</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Automatic adaptation to image types
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-pink-50 dark:bg-pink-950">
+                    <div className="w-1.5 h-1.5 bg-pink-600 rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white">Evaluation Tools</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Comprehensive performance metrics
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
-          Advanced Zero-Shot Image Classification with Domain Adaptation and LLM-Enhanced Reasoning
-        </p>
       </div>
-
-      {/* Features Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="shadow-md hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-200 dark:hover:border-blue-800">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Upload className="h-6 w-6 text-blue-600" />
-              Upload & Classify
-            </CardTitle>
-            <CardDescription className="text-base">
-              Upload images and get instant zero-shot classification results with domain-adaptive tuning
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2 mb-6">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                CLIP-based visual embeddings
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                Custom class labels
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                Domain detection
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                Auto-tuned predictions
-              </li>
-            </ul>
-            <Button asChild className="w-full rounded-lg shadow-sm hover:shadow-md transition-all">
-              <Link href="/upload">
-                Start Classifying
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-md hover:shadow-xl transition-all duration-300 border-2 hover:border-green-200 dark:hover:border-green-800">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <BarChart3 className="h-6 w-6 text-green-600" />
-              Model Evaluation
-            </CardTitle>
-            <CardDescription className="text-base">
-              Comprehensive evaluation with advanced metrics and cross-domain analysis
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2 mb-6">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
-                Top-1/Top-5 accuracy
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
-                Precision, Recall, F1
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
-                Mean Average Precision
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
-                Cross-domain robustness
-              </li>
-            </ul>
-            <Button asChild variant="outline" className="w-full rounded-lg">
-              <Link href="/evaluate">
-                Run Evaluation
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-md hover:shadow-xl transition-all duration-300 border-2 hover:border-purple-200 dark:hover:border-purple-800 md:col-span-2 lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Brain className="h-6 w-6 text-purple-600" />
-              LLM Reasoning
-            </CardTitle>
-            <CardDescription className="text-base">
-              Get detailed explanations for predictions with AI-generated reasoning
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2 mb-6">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
-                Contextual explanations
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
-                Domain-aware insights
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
-                Confidence analysis
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
-                Visual feature descriptions
-              </li>
-            </ul>
-            <Button variant="secondary" className="w-full rounded-lg" disabled>
-              Auto-Generated
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Key Features */}
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Key Features
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">Zero-Shot Classification</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Classify images without training on specific datasets using CLIP&apos;s powerful visual-text understanding
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">Domain Adaptation</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Automatically detects image domains (photo, sketch, medical, etc.) and adapts predictions accordingly
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Brain className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">LLM Integration</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Enhanced with language models to provide detailed reasoning and explanations for predictions
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">Comprehensive Metrics</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Detailed evaluation with accuracy, precision, recall, F1, mAP, ECE, and cross-domain analysis
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">Auto-Tuning</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Adaptive score adjustment based on detected domain characteristics for improved accuracy
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Info className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">Real-time Processing</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Fast inference pipeline with efficient model loading and optimized prediction workflows
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Start */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Start Guide</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="font-semibold">For Image Classification:</h3>
-              <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                <li>Navigate to the Upload & Classify page</li>
-                <li>Upload your image (JPG, PNG, GIF)</li>
-                <li>Enter class labels you want to test</li>
-                <li>Get predictions with confidence scores</li>
-                <li>View domain analysis and LLM reasoning</li>
-              </ol>
-            </div>
-            
-            <div className="space-y-4">
-              <h3 className="font-semibold">For Model Evaluation:</h3>
-              <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                <li>Go to the Model Evaluation page</li>
-                <li>Configure evaluation parameters</li>
-                <li>Run evaluation on test dataset</li>
-                <li>Analyze comprehensive metrics</li>
-                <li>View performance charts and insights</li>
-              </ol>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

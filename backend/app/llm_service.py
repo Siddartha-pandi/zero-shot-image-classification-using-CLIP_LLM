@@ -153,3 +153,85 @@ Return ONLY the narrative text as a flowing paragraph.
         return response.text.strip()
     except Exception:
         return caption  # fallback on error
+
+
+def extract_objects(
+    caption: str,
+    candidates: List[Dict],
+    domain: str,
+) -> List[Dict]:
+    """Extract a list of objects/entities present in the image with confidence scores."""
+    if model is None:
+        # Fallback: use top candidates as objects
+        return [
+            {"name": c["label"], "score": round(c.get("score", 0), 2)}
+            for c in candidates[:5] if c.get("score", 0) > 0.1
+        ]
+    
+    prompt = f"""
+You are an expert visual object detection specialist.
+
+Image caption: "{caption}"
+Domain: {domain}
+Detected classes with scores: {candidates}
+
+Identify and list the main objects, entities, and significant visual elements present in the image.
+For each object, estimate a confidence score between 0.0 and 1.0 based on how clearly identifiable it is in the image.
+
+Respond ONLY as a JSON array of objects with "name" and "score" fields:
+[
+  {{"name": "object1", "score": 0.95}},
+  {{"name": "object2", "score": 0.88}},
+  {{"name": "object3", "score": 0.82}}
+]
+
+Rules:
+- Use 3-8 objects
+- Use simple noun phrases for object names
+- Scores should reflect confidence (higher for clear/prominent objects)
+- For medical images, focus on anatomical structures and abnormalities
+"""
+    
+    try:
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.1,
+                max_output_tokens=200,
+            )
+        )
+        
+        response_text = response.text.strip()
+        # Remove markdown code blocks if present
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            response_text = "\n".join([line for line in lines if not line.startswith("```")])
+            response_text = response_text.strip()
+        
+        parsed = json.loads(response_text)
+        if isinstance(parsed, list) and len(parsed) > 0:
+            # Validate and clean objects
+            objects = []
+            for obj in parsed[:10]:  # Max 10 objects
+                if isinstance(obj, dict) and "name" in obj and "score" in obj:
+                    objects.append({
+                        "name": str(obj["name"]).strip(),
+                        "score": round(float(obj["score"]), 2)
+                    })
+            return objects if objects else [
+                {"name": c["label"], "score": round(c.get("score", 0), 2)}
+                for c in candidates[:5] if c.get("score", 0) > 0.1
+            ]
+        else:
+            # Fallback to candidates
+            return [
+                {"name": c["label"], "score": round(c.get("score", 0), 2)}
+                for c in candidates[:5] if c.get("score", 0) > 0.1
+            ]
+    except (json.JSONDecodeError, Exception) as e:
+        print(f"Error extracting objects: {e}")
+        # Fallback to candidates
+        return [
+            {"name": c["label"], "score": round(c.get("score", 0), 2)}
+            for c in candidates[:5] if c.get("score", 0) > 0.1
+        ]

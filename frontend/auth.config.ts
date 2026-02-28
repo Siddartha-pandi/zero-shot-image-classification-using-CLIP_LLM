@@ -1,0 +1,24 @@
+import type { NextAuthConfig } from "next-auth"
+
+// Edge-safe auth config for middleware (no OAuth providers)
+export const authConfig = {
+  providers: [], // Providers added in auth.ts to avoid edge runtime issues
+  pages: {
+    signIn: "/",
+  },
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user
+      const isOnProtected = 
+        nextUrl.pathname.startsWith("/home") ||
+        nextUrl.pathname.startsWith("/upload") ||
+        nextUrl.pathname.startsWith("/evaluate")
+      
+      if (isOnProtected && !isLoggedIn) {
+        return false // Redirect to sign-in page
+      }
+      
+      return true
+    },
+  },
+} satisfies NextAuthConfig
