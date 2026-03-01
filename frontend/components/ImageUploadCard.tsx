@@ -9,14 +9,18 @@ import { cn } from '@/lib/utils'
 
 interface ImageUploadCardProps {
   onImageUpload: (file: File) => void
+  onClear?: () => void
   selectedImage?: File | null
+  imagePreview?: string | null
   disabled?: boolean
   className?: string
 }
 
 export default function ImageUploadCard({
   onImageUpload,
+  onClear,
   selectedImage,
+  imagePreview,
   disabled = false,
   className
 }: ImageUploadCardProps) {
@@ -75,18 +79,20 @@ export default function ImageUploadCard({
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-    // Call onImageUpload with null or undefined to clear
+    if (onClear) {
+      onClear()
+    }
   }
 
   return (
-    <Card className={cn(" h-full shadow-none border-0", className)}>
+    <Card className={cn("h-full shadow-none border-0", className)}>
       <CardContent className="p-0 h-full">
         <div
           className={cn(
-            "relative border-2 border-dashed rounded-xl h-full flex items-center justify-center transition-all duration-300",
+            "relative border-2 border-dashed rounded-xl h-full min-h-[280px] flex items-center justify-center transition-all duration-300",
             dragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20 scale-[1.02]" : "border-gray-300 dark:border-gray-700",
             disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/10",
-            preview ? "p-3" : "p-6"
+            preview || imagePreview ? "p-4" : "p-8"
           )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -103,45 +109,45 @@ export default function ImageUploadCard({
             disabled={disabled}
           />
           
-          {preview ? (
-            <div className="space-y-2 w-full">
-              <div className="relative">
+          {preview || imagePreview ? (
+            <div className="space-y-3 w-full flex flex-col items-center pointer-events-none">
+              <div className="relative w-full flex justify-center">
                 <img
-                  src={preview}
+                  src={imagePreview || preview || ''}
                   alt="Preview"
-                  className="w-full max-h-52 object-contain rounded-lg"
+                  className="max-w-full max-h-60 object-contain rounded-lg shadow-md"
                 />
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="absolute top-1 right-1 rounded-full shadow-lg h-7 w-7 p-0"
+                  className="absolute top-2 right-2 rounded-full shadow-lg h-8 w-8 p-0 z-10 cursor-pointer pointer-events-auto hover:scale-110 transition-transform"
                   onClick={(e) => {
                     e.stopPropagation()
                     clearImage()
                   }}
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400 text-center truncate px-2">
+              <p className="text-sm text-gray-700 dark:text-gray-300 text-center font-medium truncate px-4 max-w-full pointer-events-none">
                 {selectedImage?.name || 'Image uploaded'}
               </p>
             </div>
           ) : (
-            <div className="text-center space-y-3">
-              <div className="bg-blue-100 dark:bg-blue-900/30 w-12 h-12 rounded-xl flex items-center justify-center mx-auto">
-                <Image className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="text-center space-y-4">
+              <div className="bg-blue-100 dark:bg-blue-900/30 w-16 h-16 rounded-xl flex items-center justify-center mx-auto">
+                <Image className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                   Drop image here or click to browse
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   JPG, PNG, GIF up to 10MB
                 </p>
               </div>
-              <Button variant="outline" size="sm" disabled={disabled} className="rounded-lg text-xs h-8">
-                <Upload className="mr-2 h-3 w-3" />
+              <Button variant="outline" size="sm" disabled={disabled} className="rounded-lg text-sm h-9 px-4">
+                <Upload className="mr-2 h-4 w-4" />
                 Browse Files
               </Button>
             </div>

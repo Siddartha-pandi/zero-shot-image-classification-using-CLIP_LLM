@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from typing import List, Optional
 from PIL import Image
 import io
+import logging
 
 from .clip_service import (
     classify_image,
@@ -19,7 +20,21 @@ from .domain_service import infer_domain_from_hint, infer_domain
 from .llm_service import llm_reason_and_label, llm_narrative, extract_objects
 from .evaluation_service import evaluate_dataset
 
-app = FastAPI(title="Adaptive CLIP–LLM Backend")
+# Import hybrid classification routes
+from .routes.classify import router as classify_router
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="Hybrid ViT-H/14 + MedCLIP Classification System",
+    description="Multi-domain zero-shot image classification with automatic model routing",
+    version="2.0.0"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,10 +44,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include hybrid classification routes
+app.include_router(classify_router)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Server startup event"""
+    logger.info("=" * 80)
+    logger.info("Starting Hybrid ViT-H/14 + MedCLIP Classification System")
+    logger.info("=" * 80)
+    logger.info("Note: Models will load on first request (lazy loading)")
+    logger.info("This may take 1-2 minutes for the first classification")
+    logger.info("=" * 80)
+    logger.info("Server ready!")
+    logger.info("=" * 80)
+
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    """Health check endpoint"""
+    return {
+        "status": "ok",
+        "system": "Hybrid ViT-H/14 + MedCLIP",
+        "version": "2.0.0"
+    }
 
 
 @app.get("/api/classes")

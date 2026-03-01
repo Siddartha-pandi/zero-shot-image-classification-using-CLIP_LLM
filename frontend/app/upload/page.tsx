@@ -52,11 +52,37 @@ export default function UploadPage() {
     // Don't auto-classify on upload - wait for button click
   }
 
+  const handleClearImage = () => {
+    setSelectedImage(null)
+    setImagePreview(null)
+    setLabels([])
+    setResults(null)
+    setError(null)
+  }
+
+  const checkBackendHealth = async (): Promise<boolean> => {
+    try {
+      await apiClient.healthCheck()
+      return true
+    } catch (error) {
+      setError('❌ Backend is not running. Please start the backend server before classifying.')
+      console.error('Backend health check failed:', error)
+      return false
+    }
+  }
+
   const handleStartClassification = async () => {
     if (!selectedImage) {
       setError('Please select an image first')
       return
     }
+    
+    // Check if backend is running before proceeding
+    const backendHealthy = await checkBackendHealth()
+    if (!backendHealthy) {
+      return
+    }
+    
     await handleAutoClassify(selectedImage)
   }
 
@@ -133,6 +159,12 @@ export default function UploadPage() {
       return
     }
 
+    // Check if backend is running before proceeding
+    const backendHealthy = await checkBackendHealth()
+    if (!backendHealthy) {
+      return
+    }
+
     setIsLoading(true)
     setError(null)
     
@@ -183,42 +215,46 @@ export default function UploadPage() {
       {/* Upload and Classification Section */}
       <div className="space-y-4">
         {/* Combined Upload and Classification Card */}
-        <Card className="shadow-md border-2 border-purple-300 dark:border-purple-700 h-80">
-          <CardContent className="p-4 h-full">
+        <Card className="shadow-md border-2 border-purple-300 dark:border-purple-700">
+          <CardContent className="p-6">
             {!selectedImage ? (
               // Before upload - Full card upload area
-              <div className="h-full">
+              <div className="h-72">
                 <ImageUploadCard 
                   onImageUpload={handleImageSelect}
+                  onClear={handleClearImage}
                   selectedImage={selectedImage}
+                  imagePreview={imagePreview}
                 />
               </div>
             ) : (
               // After upload - Split into upload area and button
-              <div className="grid lg:grid-cols-3 gap-4 h-full">
-                {/* Upload Area - Takes 2 columns */}
-                <div className="lg:col-span-2 h-full">
+              <div className="grid lg:grid-cols-5 gap-6 items-center">
+                {/* Upload Area - Takes 3 columns */}
+                <div className="lg:col-span-3">
                   <ImageUploadCard 
                     onImageUpload={handleImageSelect}
+                    onClear={handleClearImage}
                     selectedImage={selectedImage}
+                    imagePreview={imagePreview}
                   />
                 </div>
 
-                {/* Start Classification Button - Takes 1 column */}
-                <div className="flex items-center justify-center h-full">
+                {/* Start Classification Button - Takes 2 columns */}
+                <div className="lg:col-span-2 flex items-center justify-center">
                   <Button
                     onClick={handleStartClassification}
                     disabled={isPredicting}
-                    className="w-full py-3 text-sm bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50"
+                    className="w-full h-14 text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 shadow-lg hover:shadow-xl transition-all"
                   >
                     {isPredicting ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                         <span>Classifying...</span>
                       </>
                     ) : (
                       <>
-                        <Sparkles className="h-4 w-4 mr-2" />
+                        <Sparkles className="h-5 w-5 mr-2" />
                         <span>Start Classification</span>
                       </>
                     )}
@@ -376,7 +412,7 @@ export default function UploadPage() {
                                 key={idx}
                                 className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-900/50 capitalize"
                               >
-                                {obj}
+                                {obj.name} {obj.score > 0 && `(${(obj.score * 100).toFixed(0)}%)`}
                               </Badge>
                             ))}
                           </div>
@@ -397,8 +433,8 @@ export default function UploadPage() {
                         </p>
                       </div>
 
-                      {/* LLM Explanation */}
-                      <div className="space-y-2">
+                      {/* LLM Explanation - Hidden */}
+                      <div className="space-y-2 hidden">
                         <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
                           <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                           LLM Reasoning
@@ -418,9 +454,9 @@ export default function UploadPage() {
                         </p>
                       </div>
 
-                      {/* Validation Scores */}
+                      {/* Validation Scores - Hidden */}
                       {results.validation && (
-                        <div className="space-y-3">
+                        <div className="space-y-3 hidden">
                           <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
                             <Sparkles className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                             Validation
@@ -444,10 +480,6 @@ export default function UploadPage() {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-
               </CardContent>
             </Card>
           ) : (

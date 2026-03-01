@@ -302,8 +302,8 @@ export default function EnhancedResultsCard({
           )}
         </section>
 
-        {/* TRANSPARENCY TRACE */}
-        <section>
+        {/* TRANSPARENCY TRACE - Hidden */}
+        <section className="hidden">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               🔍 Transparency Trace

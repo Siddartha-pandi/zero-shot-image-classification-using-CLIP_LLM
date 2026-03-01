@@ -33,8 +33,6 @@ help:
 	@echo "  make start-frontend-bg- Start frontend in new window"
 	@echo "  make start-all-bg     - Start both in separate windows"
 	@echo ""
-	@echo "$(YELLOW)  Direct:$(NC) You can also run .\run-backend.ps1 or .\run-frontend.ps1"
-	@echo ""
 	@echo "$(GREEN)STATUS & MONITORING$(NC)"
 	@echo "  make status           - Check status of both servers"
 	@echo "  make check-backend    - Check backend health & classes"
@@ -69,7 +67,6 @@ help:
 	@echo "  make setup && make start   # First time setup"
 	@echo "  make start-all-bg         # Run both servers in background"
 	@echo "  make status               # Check if servers are running"
-	@echo "  .\run-backend.ps1         # Direct run (no batch prompt)"
 	@echo ""
 
 setup: install env-setup add-classes
@@ -122,10 +119,10 @@ start:
 	@echo ""
 
 start-backend:
-	@powershell -ExecutionPolicy Bypass -File run-backend.ps1
+	cd backend && $(PYTHON) -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 
 start-frontend:
-	@powershell -ExecutionPolicy Bypass -File run-frontend.ps1
+	cd frontend && $(NPM) run dev
 
 start-backend-bg:
 	@echo "$(YELLOW)Starting backend in new window...$(NC)"

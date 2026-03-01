@@ -232,9 +232,9 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
 
 
 
-        {/* Additional Details (Collapsible) */}
+        {/* Additional Details (Collapsible) - Hidden */}
         {results.reasoning_chain && (
-          <details className="group">
+          <details className="group hidden">
             <summary className="cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 flex items-center gap-2">
               <span className="transform group-open:rotate-90 transition-transform">▶</span>
               View Technical Details

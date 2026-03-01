@@ -5,10 +5,15 @@ export interface Candidate {
   score: number
 }
 
+export interface DetectedObject {
+  name: string
+  score: number
+}
+
 export interface ClassificationResult {
   domain: string
   confidence: number
-  objects: string[]
+  objects: DetectedObject[]
   caption: string
   explanation: string
   label: string
