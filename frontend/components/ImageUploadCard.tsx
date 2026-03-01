@@ -86,10 +86,10 @@ export default function ImageUploadCard({
 
   return (
     <Card className={cn("h-full shadow-none border-0", className)}>
-      <CardContent className="p-0 h-full">
+      <CardContent className="p-0 h-full w-full">
         <div
           className={cn(
-            "relative border-2 border-dashed rounded-xl h-full min-h-[280px] flex items-center justify-center transition-all duration-300",
+            "relative border-2 border-dashed rounded-xl h-full w-full flex flex-col items-center justify-center transition-all duration-300",
             dragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20 scale-[1.02]" : "border-gray-300 dark:border-gray-700",
             disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/10",
             preview || imagePreview ? "p-4" : "p-8"
@@ -115,7 +115,7 @@ export default function ImageUploadCard({
                 <img
                   src={imagePreview || preview || ''}
                   alt="Preview"
-                  className="max-w-full max-h-60 object-contain rounded-lg shadow-md"
+                  className="max-w-full max-h-40 object-contain rounded-lg shadow-md"
                 />
                 <Button
                   variant="destructive"
@@ -134,9 +134,9 @@ export default function ImageUploadCard({
               </p>
             </div>
           ) : (
-            <div className="text-center space-y-4">
-              <div className="bg-blue-100 dark:bg-blue-900/30 w-16 h-16 rounded-xl flex items-center justify-center mx-auto">
-                <Image className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <div className="text-center space-y-2">
+              <div className="bg-blue-100 dark:bg-blue-900/30 w-12 h-12 rounded-xl flex items-center justify-center mx-auto">
+                <Image className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">

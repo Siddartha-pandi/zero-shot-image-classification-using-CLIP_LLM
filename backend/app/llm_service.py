@@ -47,7 +47,7 @@ def llm_reason_and_label(
     user_hint: str,
     domain: str,
 ) -> Dict[str, str]:
-    """Choose final label + explanation using LLM."""
+    """Choose final label + explanation using LLM with high accuracy focus."""
     if model is None:
         # fallback – just take top candidate
         top = candidates[0]
@@ -57,18 +57,35 @@ def llm_reason_and_label(
         }
 
     prompt = f"""
-You are an expert visual reasoning assistant.
+You are an EXPERT visual recognition specialist with 20+ years of experience.
+Your task: IDENTIFY THE MOST ACCURATE PRIMARY LABEL from candidates.
 
-Image caption: "{caption}"
+📸 IMAGE INFORMATION:
+Caption: "{caption}"
 Domain: {domain}
-Top candidate classes with cosine scores: {candidates}
-User hint: "{user_hint}"
 
-Choose the most likely label and explain briefly.
-Respond ONLY as JSON:
+🎯 CANDIDATE LABELS (with confidence scores):
+"""
+    for i, candidate in enumerate(candidates[:5], 1):
+        prompt += f"\n{i}. {candidate['label']}: {candidate['score']:.3f}"
+    
+    prompt += f"""
+
+❓ User's hint/context: "{user_hint}"
+
+🔬 YOUR TASK:
+1. Analyze the caption and candidates carefully
+2. Consider semantic alignment between caption and each candidate
+3. Choose the SINGLE MOST ACCURATE label that best describes the primary subject
+4. Provide a concise, evidence-based reason
+
+⚠️ ACCURACY IS CRITICAL - Choose conservatively if uncertain.
+
+Respond ONLY as valid JSON (no markdown blocks):
 {{
-  "label": "<final_label>",
-  "reason": "<short explanation>"
+  "label": "<most_accurate_label>",
+  "reason": "<evidence-based explanation>",
+  "confidence_multiplier": <0.8_to_1.2_adjustment_factor>
 }}
 """
 
@@ -76,8 +93,9 @@ Respond ONLY as JSON:
         response = model.generate_content(
             prompt,
             generation_config=genai.types.GenerationConfig(
-                temperature=0.1,
-                max_output_tokens=100,
+                temperature=0.05,  # ULTRA-LOW for maximum accuracy
+                top_p=0.9,         # Reduce sampling diversity
+                max_output_tokens=150,
             )
         )
         
@@ -100,6 +118,7 @@ Respond ONLY as JSON:
         return {
             "label": top["label"],
             "reason": "Fallback to top CLIP candidate due to JSON parse error.",
+            "confidence_multiplier": 0.95
         }
     except Exception as e:
         print(f"LLM error: {e}")
@@ -107,6 +126,7 @@ Respond ONLY as JSON:
         return {
             "label": top["label"],
             "reason": "Fallback to top CLIP candidate due to LLM error.",
+            "confidence_multiplier": 0.95
         }
 
 
@@ -116,43 +136,46 @@ def llm_narrative(
     user_hint: str,
     domain: str,
 ) -> str:
-    """Generate detailed narrative description."""
+    """Generate detailed, accurate narrative description with focus on truth."""
     if model is None:
         return caption  # fallback: just caption
 
     prompt = f"""
-You are an expert image analyst writing detailed, descriptive narratives about images.
+You are an EXPERT image analyst describing images with ABSOLUTE ACCURACY.
 
 Caption: "{caption}"
 Domain: {domain}
-Detected classes with confidence: {candidates}
-User hint: "{user_hint}"
+Detected classes: {[c['label'] for c in candidates[:5]]}
 
-Write a comprehensive, detailed 8-12 sentence narrative describing the image. Include:
-1. Main subjects or objects present and their characteristics
-2. Visual details: colors, textures, patterns, shapes, and materials
-3. The setting, environment, and background elements
-4. Spatial relationships and composition (foreground, middle, background)
-5. Lighting, atmosphere, and mood
-6. Actions, poses, or states of subjects
-7. Notable features, unique aspects, or interesting details
-8. Overall impression and context
+📝 TASK: Write a 6-9 sentence narrative that:
+1. Describes ONLY what is clearly visible in the caption
+2. Includes main subjects, key objects, and visual elements
+3. Mentions colors, textures, composition, and spatial relationships
+4. Notes the environment/setting and atmosphere
+5. Describes any identified actions or states
 
-Be highly descriptive, vivid, and engaging while remaining factual. Use rich, varied vocabulary to paint a complete picture. Do NOT invent details that aren't supported by the detected classes and caption.
-Return ONLY the narrative text as a flowing paragraph.
+⚠️ ACCURACY CRITICAL:
+- Do NOT fabricate details
+- Only include facts supported by the caption
+- Be specific and precise
+- Avoid speculation beyond what is clear
+
+Respond ONLY with the narrative text (no introduction, no conclusion):
 """
 
     try:
         response = model.generate_content(
             prompt,
             generation_config=genai.types.GenerationConfig(
-                temperature=0.5,
-                max_output_tokens=500,
+                temperature=0.15,  # LOWERED from 0.5 for accuracy
+                top_p=0.9,
+                max_output_tokens=400,
             )
         )
         return response.text.strip()
-    except Exception:
-        return caption  # fallback on error
+    except Exception as e:
+        logger.error(f"Narrative generation error: {e}")
+        return caption  # Safe fallback
 
 
 def extract_objects(

@@ -38,10 +38,29 @@ class DomainRouter:
     
     def estimate_domain(self, image: Image.Image) -> Tuple[DomainType, float, dict]:
         """
-        Estimate image domain using ViT-H/14
+        🔍 DOMAIN DETECTION - CLIP SEMANTIC MATCHING LAYER
+        
+        Converts image to embedding and finds best-matching domain via cosine similarity.
+        
+        Mathematical Flow:
+        [1] E_img = ViT-H/14_vision(Image)
+            └─> Dense semantic vector (1024-dim), encodes visual concepts
+        
+        [2] For each domain (medical, fashion, traffic, satellite, industrial, natural):
+            E_domain = ViT-H/14_text(domain_keywords)
+            └─> Text embedding for domain description
+        
+        [3] Similarity = cos(E_img, E_domain)
+            = (E_img · E_domain) / (||E_img|| × ||E_domain||)
+            └─> Score range: 0.0 (no match) to 1.0 (perfect match)
+        
+        [4] best_domain = argmax(similarities)
+            confidence = max(similarities)
+        
+        Returns highest similarity domain + all 6 scores for transparency.
         
         Args:
-            image: PIL Image
+            image: PIL Image (any size, auto-resized to 224x224)
             
         Returns:
             Tuple of (domain, confidence, all_scores)
@@ -128,11 +147,20 @@ class DomainRouter:
         # Determine which model to use
         model_name, domain, domain_conf, domain_scores = self.route(image)
         
+        logger.info(
+            f"🎯 Routing Classification:"
+            f"\n  Model: {model_name}"
+            f"\n  Domain: {domain} (conf: {domain_conf:.3f})"
+            f"\n  Labels: {len(labels)} candidates - {labels[:5]}..." if len(labels) > 5 else f"\n  Labels: {labels}"
+        )
+        
         # Classify with appropriate model
         if model_name == "MedCLIP":
             predictions, image_emb = self.medclip.classify(image, labels, top_k)
+            logger.info(f"✅ MedCLIP classification complete - Top: {predictions[0]['label']} ({predictions[0]['score']:.3f})")
         else:
             predictions, image_emb = self.vith14.classify(image, labels, top_k)
+            logger.info(f"✅ ViT-H/14 classification complete - Top: {predictions[0]['label']} ({predictions[0]['score']:.3f})")
         
         return {
             "model_used": model_name,

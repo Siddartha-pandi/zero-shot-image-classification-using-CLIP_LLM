@@ -17,7 +17,8 @@ from ..models.medclip_model import get_medclip_model
 from ..models.similarity import (
     compute_confidence_score,
     get_confidence_explanation,
-    compute_cosine_similarity
+    compute_cosine_similarity,
+    validate_semantic_consistency
 )
 from ..models.llm_hybrid import (
     generate_hybrid_explanation,
@@ -33,18 +34,32 @@ router = APIRouter(prefix="/api", tags=["classification"])
 # Default class labels for different domains
 DEFAULT_LABELS = {
     "medical": [
-        "lungs",
-        "rib cage",
-        "pulmonary opacity",
+        # Anatomical structures
+        "chest x-ray",
+        "lung",
         "heart",
-        "chest",
-        "normal chest x-ray",
+        "rib cage",
+        "spine",
+        "diaphragm",
+        # Common findings/diseases
         "pneumonia",
+        "pulmonary opacity",
+        "consolidation",
         "pleural effusion",
         "atelectasis",
         "cardiomegaly",
-        "consolidation",
-        "edema"
+        "pulmonary edema",
+        "pneumothorax",
+        "lung nodule",
+        "lung mass",
+        "infiltrate",
+        "interstitial marking",
+        # Status
+        "normal chest x-ray",
+        "abnormal chest x-ray",
+        "clear lung fields",
+        "lung infection",
+        "pulmonary disease"
     ],
     "fashion": [
         "dress",
@@ -125,10 +140,15 @@ async def classify_hybrid(
         # Parse custom labels or use defaults
         if custom_labels:
             labels = [label.strip() for label in custom_labels.split(",")]
+            logger.info(f"Using {len(labels)} custom labels")
         else:
             # Detect domain first for default labels
-            _, domain, _, _ = domain_router.route(image)
+            _, domain, domain_conf, domain_scores = domain_router.route(image)
             labels = DEFAULT_LABELS.get(domain, DEFAULT_LABELS["natural"])
+            logger.info(
+                f"Domain detected: {domain} (confidence: {domain_conf:.3f})"
+                f" - Using {len(labels)} domain-specific labels"
+            )
         
         # Classify with automatic routing
         classification_result = domain_router.classify_with_routing(
@@ -243,6 +263,200 @@ async def classify_hybrid(
         
     except Exception as e:
         logger.error(f"Classification error: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e), "detail": "Internal server error during classification"}
+        )
+
+
+@router.post("/classify")
+async def classify_open_ended(
+    file: UploadFile = File(...),
+    user_text: Optional[str] = Form(default=None),
+    top_k: int = Form(default=10)
+):
+    """
+    Open-ended classification endpoint - detects ALL objects without predefined labels
+    
+    - Generates image caption using state-of-the-art model
+    - Extracts objects dynamically from the caption using LLM
+    - Classifies against detected objects (100% custom, no predefined classes)
+    - Works across any domain, any objects, any scenarios
+    """
+    start_time = time.time()
+    
+    try:
+        # Read and process image
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
+        
+        # Get router instance
+        domain_router = get_router()
+        
+        # Step 1: Generate caption (describes what's in the image)
+        caption = generate_caption(image)
+        logger.info(f"Generated caption: {caption[:100]}...")
+        
+        # Step 2: Determine domain for better context
+        _, domain, _, domain_scores = domain_router.route(image)
+        logger.info(f"Detected domain: {domain}")
+        
+        # Step 3: Use custom user labels if provided, otherwise extract objects
+        if user_text:
+            # User provided specific labels to classify
+            labels = [label.strip() for label in user_text.split(",")]
+            logger.info(f"Using user-provided labels: {labels}")
+        else:
+            # Fully open-ended: extract objects from caption
+            logger.info("Performing open-ended detection...")
+            # First, get some initial candidates to help guide object extraction
+            temp_labels = ["object", "item", "entity", "person", "thing"]
+            temp_result = domain_router.classify_with_routing(
+                image=image,
+                labels=temp_labels,
+                top_k=1
+            )
+            
+            # Extract objects from the caption
+            extracted = extract_objects_hybrid(
+                domain=domain,
+                caption=caption,
+                top_matches=temp_result["predictions"]
+            )
+            
+            # Use extracted objects as labels
+            labels = [obj["name"] for obj in extracted]
+            logger.info(f"Extracted {len(labels)} objects: {labels}")
+        
+        # Step 4: Classify with detected/provided labels
+        classification_result = domain_router.classify_with_routing(
+            image=image,
+            labels=labels,
+            top_k=min(top_k, len(labels))
+        )
+        
+        # Extract results
+        model_used = classification_result["model_used"]
+        domain_confidence = classification_result["domain_confidence"]
+        domain_scores_full = classification_result["domain_scores"]
+        predictions = classification_result["predictions"]
+        image_emb = classification_result["image_embedding"]
+        
+        # Get top prediction
+        top_prediction = predictions[0]
+        prediction_label = top_prediction["label"]
+        prediction_score = top_prediction["score"]
+        
+        # Get appropriate model for caption embedding
+        if model_used == "MedCLIP":
+            model = get_medclip_model()
+        else:
+            model = get_vith14_model()
+        
+        # Encode caption for confidence calculation
+        caption_emb = model.encode_text([caption])[0]
+        
+        # 🛡️ SEMANTIC VALIDATION - Check consistency
+        validation_result = validate_semantic_consistency(
+            prediction_label=prediction_label,
+            caption=caption,
+            image_emb=image_emb,
+            model_instance=model
+        )
+        logger.info(f"Semantic validation: {validation_result['verdict']}")
+        
+        # Compute final confidence score with validation adjustment
+        confidence_score = compute_confidence_score(
+            domain=domain,
+            model_used=model_used,
+            prediction_score=prediction_score,
+            image_emb=image_emb,
+            caption_emb=caption_emb,
+            domain_similarity=domain_confidence,
+            confidence_multiplier=validation_result["confidence_adjustment"]
+        )
+        
+        # Generate LLM explanation
+        llm_result = generate_hybrid_explanation(
+            domain=domain,
+            model_used=model_used,
+            prediction=prediction_label,
+            confidence=confidence_score,
+            caption=caption,
+            top_matches=predictions,
+            domain_scores=domain_scores_full
+        )
+        
+        # Generate detailed narrative
+        narrative = generate_detailed_narrative(
+            domain=domain,
+            model_used=model_used,
+            prediction=prediction_label,
+            caption=llm_result["caption"],
+            top_matches=predictions
+        )
+        
+        # Extract objects (again for final response)
+        objects = extract_objects_hybrid(
+            domain=domain,
+            caption=llm_result["caption"],
+            top_matches=predictions
+        )
+        
+        inference_time = time.time() - start_time
+        
+        # Build response
+        response = {
+            "label": prediction_label,
+            "confidence": round(confidence_score, 4),
+            "caption": caption,
+            "explanation": llm_result["explanation"],
+            "narrative": narrative,
+            "candidates": [
+                {
+                    "label": pred["label"],
+                    "score": round(pred["score"], 4),
+                    "confidence": get_confidence_explanation(pred["score"], domain, model_used)
+                }
+                for pred in predictions
+            ],
+            "objects": objects,
+            "domain": domain,
+            "model_used": model_used,
+            "domain_scores": {
+                k: round(v, 4) for k, v in domain_scores_full.items()
+            },
+            "inference_time_seconds": round(inference_time, 3),
+            "metadata": {
+                "domain_confidence": round(domain_confidence, 4),
+                "raw_prediction_score": round(prediction_score, 4),
+                "total_labels_evaluated": len(labels),
+                "labels_evaluated": labels,
+                "open_ended_mode": user_text is None,
+                "confidence_explanation": get_confidence_explanation(
+                    confidence_score, domain, model_used
+                ),
+                "semantic_validation": {
+                    "is_consistent": validation_result["is_consistent"],
+                    "alignment_score": round(validation_result["alignment_score"], 4),
+                    "verdict": validation_result["verdict"],
+                    "confidence_adjustment_factor": round(validation_result["confidence_adjustment"], 3),
+                    "similarity_scores": {
+                        k: round(v, 4) for k, v in validation_result["scores"].items()
+                    }
+                }
+            }
+        }
+        
+        logger.info(
+            f"Open-ended classification complete: {prediction_label} ({confidence_score:.2%}) "
+            f"using {model_used}. Detected {len(objects)} objects in {inference_time:.2f}s"
+        )
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Open-ended classification error: {e}", exc_info=True)
         return JSONResponse(
             status_code=500,
             content={"error": str(e), "detail": "Internal server error during classification"}

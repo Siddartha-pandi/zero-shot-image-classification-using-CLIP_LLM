@@ -14,9 +14,36 @@ class APIClient {
   }
 
   /**
-   * Classify an image
+   * Classify an image with hybrid routing (auto domain detection + MedCLIP for medical)
    */
   async classifyImage(
+    imageFile: File,
+    userText?: string
+  ): Promise<ClassificationResult> {
+    const formData = new FormData()
+    formData.append('file', imageFile)
+    if (userText) {
+      formData.append('custom_labels', userText)
+    }
+    formData.append('top_k', '10')
+
+    const response = await this.client.post<ClassificationResult>(
+      '/api/classify-hybrid',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+
+    return response.data
+  }
+
+  /**
+   * Open-ended classification (extracts objects from caption)
+   */
+  async classifyOpenEnded(
     imageFile: File,
     userText?: string
   ): Promise<ClassificationResult> {

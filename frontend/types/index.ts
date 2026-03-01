@@ -10,15 +10,41 @@ export interface DetectedObject {
   score: number
 }
 
+export interface TopMatch {
+  label: string
+  score: number
+}
+
+export interface DomainScores {
+  [key: string]: number
+}
+
+export interface ClassificationMetadata {
+  domain_confidence: number
+  raw_prediction_score: number
+  total_labels_evaluated: number
+  confidence_explanation: string
+}
+
 export interface ClassificationResult {
   domain: string
-  confidence: number
-  objects: DetectedObject[]
+  model_used: string
+  prediction: string
+  confidence_score: number
   caption: string
   explanation: string
-  label: string
+  risk_notes?: string
   narrative: string
-  candidates: Candidate[]
+  objects: DetectedObject[]
+  top_matches: TopMatch[]
+  domain_scores: DomainScores
+  inference_time_seconds: number
+  metadata: ClassificationMetadata
+  
+  // Legacy compatibility fields
+  confidence?: number
+  label?: string
+  candidates?: Candidate[]
   validation?: {
     domain_similarity: number
     caption_similarity: number

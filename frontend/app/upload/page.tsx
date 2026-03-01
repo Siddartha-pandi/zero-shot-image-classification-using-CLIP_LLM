@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import ImageUploadCard from "@/components/ImageUploadCard"
+import ClassificationProgress, { ProcessStep, StepStatus } from "@/components/ClassificationProgress"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,23 +12,6 @@ import { Upload, Brain, ArrowLeft, Sparkles, Image as ImageIcon, Tags, Loader2, 
 import Link from "next/link"
 import type { ClassificationResult } from "@/types"
 import { apiClient } from "@/lib/api"
-
-// Common classes for auto-prediction
-const COMMON_CLASSES = [
-  'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat',
-  'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench',
-  'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe',
-  'backpack', 'umbrella', 'handbag', 'tie', 'suitcase',
-  'frisbee', 'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove',
-  'skateboard', 'surfboard', 'tennis racket',
-  'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
-  'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
-  'donut', 'cake',
-  'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet',
-  'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-  'microwave', 'oven', 'toaster', 'sink', 'refrigerator',
-  'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
-]
 
 export default function UploadPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -38,6 +22,57 @@ export default function UploadPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isPredicting, setIsPredicting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Progress tracking
+  const [showProgress, setShowProgress] = useState(false)
+  const [processSteps, setProcessSteps] = useState<ProcessStep[]>([])
+  const [currentStepIndex, setCurrentStepIndex] = useState(0)
+  const [sessionId, setSessionId] = useState<string>('')
+
+  // Helper function to update step status
+  const updateStepStatus = (stepId: string, status: StepStatus, errorMessage?: string) => {
+    setProcessSteps(prevSteps => 
+      prevSteps.map(step => 
+        step.id === stepId 
+          ? { ...step, status, errorMessage } 
+          : step
+      )
+    )
+  }
+
+  // Initialize progress steps
+  const initializeProgressSteps = () => {
+    const steps: ProcessStep[] = [
+      {
+        id: 'health-check',
+        label: 'Backend Check',
+        description: 'Verifying backend connection',
+        status: 'pending'
+      },
+      {
+        id: 'detect-objects',
+        label: 'Domain Detection',
+        description: 'Auto-detecting image domain & model routing',
+        status: 'pending'
+      },
+      {
+        id: 'analyze-image',
+        label: 'AI Analysis',
+        description: 'MedCLIP for medical, ViT-H/14 for others',
+        status: 'pending'
+      },
+      {
+        id: 'generate-results',
+        label: 'Results Ready',
+        description: 'Finalizing predictions',
+        status: 'pending'
+      }
+    ]
+    setProcessSteps(steps)
+    setCurrentStepIndex(0)
+    setSessionId(`CLS-${Date.now()}`)
+    setShowProgress(true)
+  }
 
   const handleImageSelect = (file: File) => {
     setSelectedImage(file)
@@ -58,6 +93,8 @@ export default function UploadPage() {
     setLabels([])
     setResults(null)
     setError(null)
+    setShowProgress(false)
+    setProcessSteps([])
   }
 
   const checkBackendHealth = async (): Promise<boolean> => {
@@ -65,7 +102,6 @@ export default function UploadPage() {
       await apiClient.healthCheck()
       return true
     } catch (error) {
-      setError('❌ Backend is not running. Please start the backend server before classifying.')
       console.error('Backend health check failed:', error)
       return false
     }
@@ -77,53 +113,101 @@ export default function UploadPage() {
       return
     }
     
-    // Check if backend is running before proceeding
-    const backendHealthy = await checkBackendHealth()
-    if (!backendHealthy) {
-      return
-    }
+    // Initialize progress tracking
+    initializeProgressSteps()
+    setError(null)
+    setResults(null)
     
+    // Start classification with progress
     await handleAutoClassify(selectedImage)
   }
 
   const handleAutoClassify = async (imageFile: File) => {
     setIsPredicting(true)
-    setError(null)
     setLabels([])
     
     try {
-      // Step 1: Register all common classes in parallel for speed
-      const registrationPromises = COMMON_CLASSES.map(async (label) => {
-        try {
-          return await apiClient.addClass(label.toLowerCase().trim(), 'natural')
-        } catch (err) {
-          // Ignore if class already exists
-          return null
-        }
-      })
+      // Step 1: Backend Health Check
+      setCurrentStepIndex(0)
+      updateStepStatus('health-check', 'in-progress')
       
-      // Wait for all registrations to complete
-      await Promise.allSettled(registrationPromises)
+      const backendHealthy = await checkBackendHealth()
+      if (!backendHealthy) {
+        updateStepStatus('health-check', 'error', 'Backend not responding')
+        setShowProgress(false)
+        return
+      }
+      
+      updateStepStatus('health-check', 'completed')
+      await new Promise(resolve => setTimeout(resolve, 300)) // Brief pause for visual feedback
+      
+      // Step 2: Domain Detection & Model Routing
+      setCurrentStepIndex(1)
+      updateStepStatus('detect-objects', 'in-progress')
+      await new Promise(resolve => setTimeout(resolve, 500))
+      updateStepStatus('detect-objects', 'completed')
+      await new Promise(resolve => setTimeout(resolve, 300))
 
-      // Step 2: Classify with all common classes
-      const result = await apiClient.classifyImage(imageFile, COMMON_CLASSES.join(', '))
+      // Step 3: Analyze Image with Hybrid Model (MedCLIP for medical, ViT-H/14 for others)
+      setCurrentStepIndex(2)
+      updateStepStatus('analyze-image', 'in-progress')
       
-      // Extract all candidates with their confidence scores
-      const predictedLabels = result.candidates
-        .filter(c => c.score > 0.01) // Filter out very low confidence
+      const result = await apiClient.classifyImage(imageFile)
+      
+      // Normalize response format for backward compatibility
+      const normalizedResult = {
+        ...result,
+        label: result.prediction || result.label || 'Unknown',
+        confidence: result.confidence_score || result.confidence || 0,
+        candidates: result.top_matches?.map(m => ({ label: m.label, score: m.score })) || result.candidates || []
+      }
+      
+      updateStepStatus('analyze-image', 'completed')
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      // Step 4: Generate Results
+      setCurrentStepIndex(3)
+      updateStepStatus('generate-results', 'in-progress')
+      
+      // Extract detected labels from results
+      const detectedLabels = normalizedResult.candidates
+        .filter(c => c.score > 0.01)
         .map(c => c.label)
         .filter(l => l && l.trim())
       
-      setLabels(predictedLabels)
-      setResults(result) // Show the results immediately
+      setLabels(detectedLabels)
+      
+      await new Promise(resolve => setTimeout(resolve, 500))
+      updateStepStatus('generate-results', 'completed')
+      
+      // Wait a moment to show all steps complete
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      // Hide progress and show results
+      setShowProgress(false)
+      setResults(normalizedResult)
       
     } catch (error) {
       console.error('Auto-classification failed:', error)
+      
+      // Mark current step as error
+      const currentStep = processSteps[currentStepIndex]
+      if (currentStep) {
+        updateStepStatus(
+          currentStep.id, 
+          'error', 
+          error instanceof Error ? error.message : 'Classification failed'
+        )
+      }
+      
       setError(
         error instanceof Error 
           ? error.message 
           : 'Auto-classification failed. Please ensure the backend is running.'
       )
+      
+      // Keep progress visible to show error
+      setTimeout(() => setShowProgress(false), 3000)
     } finally {
       setIsPredicting(false)
     }
@@ -154,11 +238,6 @@ export default function UploadPage() {
       return
     }
 
-    if (labels.length === 0) {
-      setError('Please add at least one label')
-      return
-    }
-
     // Check if backend is running before proceeding
     const backendHealthy = await checkBackendHealth()
     if (!backendHealthy) {
@@ -169,14 +248,16 @@ export default function UploadPage() {
     setError(null)
     
     try {
-      const result = await apiClient.classifyImage(selectedImage, labels.join(', '))
+      // Classify with custom labels if provided, otherwise auto-detect
+      const classifyWithLabels = labels.length > 0 ? labels.join(', ') : undefined
+      const result = await apiClient.classifyImage(selectedImage, classifyWithLabels)
       setResults(result)
     } catch (error) {
       console.error('Classification failed:', error)
       setError(
         error instanceof Error 
           ? error.message 
-          : 'Classification failed. Please make sure the backend is running and classes are added.'
+          : 'Classification failed. Please make sure the backend is running.'
       )
     } finally {
       setIsLoading(false)
@@ -190,11 +271,11 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
+    <div className="container mx-auto px-4 py-8 space-y-6 max-w-7xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/">
+          <Link href="/home">
             <Button variant="outline" size="sm" className="rounded-lg">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Home
@@ -214,56 +295,67 @@ export default function UploadPage() {
 
       {/* Upload and Classification Section */}
       <div className="space-y-4">
-        {/* Combined Upload and Classification Card */}
-        <Card className="shadow-md border-2 border-purple-300 dark:border-purple-700">
-          <CardContent className="p-6">
-            {!selectedImage ? (
-              // Before upload - Full card upload area
-              <div className="h-72">
-                <ImageUploadCard 
+        <div className={`grid gap-4 items-stretch ${showProgress ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+          {/* Combined Upload and Classification Card */}
+          <Card className="h-3/4 shadow-md border-2 border-purple-300 dark:border-purple-700">
+            <CardContent className="h-full py-6 flex flex-col justify-center items-center">
+                {!selectedImage ? (
+                // Before upload - Full card upload area
+                <div className="h-full w-full">
+                  <ImageUploadCard 
                   onImageUpload={handleImageSelect}
                   onClear={handleClearImage}
                   selectedImage={selectedImage}
                   imagePreview={imagePreview}
-                />
-              </div>
-            ) : (
-              // After upload - Split into upload area and button
-              <div className="grid lg:grid-cols-5 gap-6 items-center">
-                {/* Upload Area - Takes 3 columns */}
-                <div className="lg:col-span-3">
+                  />
+                </div>
+                ) : (
+                // After upload - Split into upload area and button
+                <div className="w-full h-full flex flex-col lg:flex-row items-center justify-center gap-8 px-4">
+                  {/* Upload Area */}
+                  <div className="flex-shrink-0">
                   <ImageUploadCard 
                     onImageUpload={handleImageSelect}
                     onClear={handleClearImage}
                     selectedImage={selectedImage}
                     imagePreview={imagePreview}
                   />
-                </div>
+                  </div>
 
-                {/* Start Classification Button - Takes 2 columns */}
-                <div className="lg:col-span-2 flex items-center justify-center">
+                  {/* Start Classification Button */}
+                  <div className="flex items-center justify-center lg:ml-8">
                   <Button
                     onClick={handleStartClassification}
                     disabled={isPredicting}
-                    className="w-full h-14 text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 shadow-lg hover:shadow-xl transition-all"
+                    className="w-64 h-14 text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 shadow-lg hover:shadow-xl transition-all"
                   >
                     {isPredicting ? (
-                      <>
-                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                        <span>Classifying...</span>
-                      </>
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      <span>Classifying...</span>
+                    </>
                     ) : (
-                      <>
-                        <Sparkles className="h-5 w-5 mr-2" />
-                        <span>Start Classification</span>
-                      </>
+                    <>
+                      <Sparkles className="h-5 w-5 mr-2" />
+                      <span>Start Classification</span>
+                    </>
                     )}
                   </Button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                )}
+            </CardContent>
+          </Card>
+
+          {/* Progress Indicator */}
+          {showProgress && (
+            <ClassificationProgress 
+              steps={processSteps}
+              currentStepIndex={currentStepIndex}
+              transactionId={sessionId}
+            />
+          )}
+        </div>
 
         {/* Error Display */}
         {error && (
@@ -278,10 +370,11 @@ export default function UploadPage() {
             </CardContent>
           </Card>
         )}
+
       </div>
 
-      {/* Classification Results */}
-      {results ? (
+      {/* Classification Results - Only show when results are ready */}
+      {results && (
             <Card className="shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -291,9 +384,9 @@ export default function UploadPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-8">
-                  {/* Top Row - Image Preview (Full Width) */}
+                  {/* Top Row - Image Preview (Full Width) - Hidden */}
                   {imagePreview && (
-                    <div className="w-full">
+                    <div className="w-full hidden">
                       <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                         <ImageIcon className="h-4 w-4" />
                         Classified Image
@@ -320,40 +413,55 @@ export default function UploadPage() {
                               Top Prediction
                             </p>
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 capitalize">
-                              {results.label}
+                              {results.prediction}
                             </h3>
                           </div>
-                          <Badge className={`${getConfidenceBadge(results.confidence).color} text-white px-3 py-1 text-xs`}>
-                            {getConfidenceBadge(results.confidence).label}
+                          <Badge className={`${getConfidenceBadge(results.confidence_score).color} text-white px-3 py-1 text-xs`}>
+                            {getConfidenceBadge(results.confidence_score).label}
                           </Badge>
                         </div>
                         <div className="mt-4">
                           <div className="flex justify-between text-sm mb-2">
                             <span className="text-gray-600 dark:text-gray-400">Confidence Score</span>
                             <span className="font-bold text-gray-900 dark:text-gray-100">
-                              {(results.confidence * 100).toFixed(1)}%
+                              {(results.confidence_score * 100).toFixed(1)}%
                             </span>
                           </div>
                           <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-3">
                             <div
-                              className={`h-3 rounded-full transition-all duration-300 ${getConfidenceBadge(results.confidence).color}`}
-                              style={{ width: `${results.confidence * 100}%` }}
+                              className={`h-3 rounded-full transition-all duration-300 ${getConfidenceBadge(results.confidence_score).color}`}
+                              style={{ width: `${results.confidence_score * 100}%` }}
                             ></div>
                           </div>
                         </div>
                       </div>
 
                       {/* Domain Info */}
-                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-xl p-4 border-2 border-amber-200 dark:border-amber-800">
-                        <div className="flex items-center gap-2 mb-2">
-                          <ImageIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                            Image Domain
-                          </span>
+                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-xl p-4 border-2 border-amber-200 dark:border-amber-800 space-y-3">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <ImageIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                              Image Domain
+                            </span>
+                          </div>
+                          <Badge className="capitalize bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                            {results.domain}
+                          </Badge>
                         </div>
-                        <Badge className="capitalize bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                          {results.domain}
-                        </Badge>
+                        {results.model_used && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Brain className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                                AI Model
+                              </span>
+                            </div>
+                            <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-900 dark:text-purple-300 border border-purple-300 dark:border-purple-700">
+                              {results.model_used}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -366,7 +474,7 @@ export default function UploadPage() {
                           Top Predictions
                         </h4>
                         <div className="space-y-2">
-                          {results.candidates?.slice(0, 5).map((candidate, idx) => {
+                          {results.top_matches?.slice(0, 5).map((candidate, idx) => {
                             const confidencePercent = (candidate.score * 100).toFixed(1)
                             const badge = getConfidenceBadge(candidate.score)
                             
@@ -479,24 +587,6 @@ export default function UploadPage() {
                       )}
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="shadow-md">
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-yellow-500" />
-                  Classification Results
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-                  <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Brain className="h-10 w-10 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <p className="text-base font-medium mb-2">Ready to Classify</p>
-                  <p className="text-sm">Upload an image and click &quot;Start Classification&quot; to see results</p>
                 </div>
               </CardContent>
             </Card>
