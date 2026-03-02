@@ -26,22 +26,52 @@ export interface ClassificationMetadata {
   confidence_explanation: string
 }
 
+export interface Narrative {
+  short: string
+  detailed: string
+  confidence: 'High' | 'Medium' | 'Low'
+}
+
 export interface ClassificationResult {
-  domain: string
-  model_used: string
-  prediction: string
-  confidence_score: number
-  caption: string
-  explanation: string
+  predictions?: Record<string, number>
+  top_prediction?: Record<string, number> | { label: string; score: number }
+  narrative?: Narrative | string  // Supports both new Narrative object and legacy string
+  explanation?: string
+  reasoning?: {
+    summary: string
+    attributes: string[]
+    detailed_reasoning: string
+  }
+  reasoning_chain?: {
+    num_prompts?: number
+    top_prompts?: string[]
+    similarity_score?: number
+  }
+  visual_features?: string[]
+  domain_info?: {
+    domain: string
+    confidence: number
+    characteristics?: string[]
+    embedding_stats: {
+      mean: number
+      std: number
+      range?: number
+    }
+  }
+  // Additional fields from hybrid classification endpoint
+  domain?: string
+  model_used?: string
+  prediction?: string
+  confidence_score?: number
+  caption?: string
   risk_notes?: string
-  narrative: string
-  objects: DetectedObject[]
-  top_matches: TopMatch[]
-  domain_scores: DomainScores
-  inference_time_seconds: number
-  metadata: ClassificationMetadata
-  
-  // Legacy compatibility fields
+  objects?: Array<{ name: string; score: number }>
+  top_predictions?: Array<{ label: string; score: number }>
+  top_matches?: Array<{ label: string; score: number }>
+  domain_scores?: Record<string, number>
+  inference_time_seconds?: number
+  metadata?: ClassificationMetadata
+  // Legacy fields
   confidence?: number
   label?: string
   candidates?: Candidate[]
@@ -49,6 +79,8 @@ export interface ClassificationResult {
     domain_similarity: number
     caption_similarity: number
   }
+  llm_reranking_used?: boolean
+  temperature?: number
 }
 
 export interface AddClassRequest {
@@ -116,41 +148,11 @@ export interface ResultCardData {
   top_predictions: TopPrediction[]
   label_refinement: LabelRefinement[]
   narrative: Narrative
+  explanation?: string
   domain_adaptation: DomainAdaptation
   anomalies: Anomaly[]
   transparency_trace: TransparencyTrace
   ui_actions: string[]
-}
-
-// Legacy classification result types (for backward compatibility)
-export interface ClassificationResult {
-  predictions: Record<string, number>
-  top_prediction: Record<string, number> | { label: string; score: number }
-  narrative?: string
-  explanation?: string
-  reasoning?: {
-    summary: string
-    attributes: string[]
-    detailed_reasoning: string
-  }
-  reasoning_chain?: {
-    num_prompts?: number
-    top_prompts?: string[]
-    similarity_score?: number
-  }
-  visual_features?: string[]
-  domain_info: {
-    domain: string
-    confidence: number
-    characteristics?: string[]
-    embedding_stats: {
-      mean: number
-      std: number
-      range?: number
-    }
-  }
-  llm_reranking_used?: boolean
-  temperature?: number
 }
 
 // Evaluation types

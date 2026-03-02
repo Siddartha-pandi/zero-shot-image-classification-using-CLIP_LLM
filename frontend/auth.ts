@@ -10,8 +10,17 @@ const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      authorization: {
+        params: {
+          // Don't force consent prompt - allows seamless re-authentication
+          // if user is already signed into Google
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
   ],
-})
+} as any)
 
 export { handlers, auth, signIn, signOut }

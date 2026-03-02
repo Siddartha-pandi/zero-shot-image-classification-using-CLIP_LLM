@@ -416,21 +416,21 @@ export default function UploadPage() {
                               {results.prediction}
                             </h3>
                           </div>
-                          <Badge className={`${getConfidenceBadge(results.confidence_score).color} text-white px-3 py-1 text-xs`}>
-                            {getConfidenceBadge(results.confidence_score).label}
+                          <Badge className={`${getConfidenceBadge(results.confidence_score ?? 0).color} text-white px-3 py-1 text-xs`}>
+                            {getConfidenceBadge(results.confidence_score ?? 0).label}
                           </Badge>
                         </div>
                         <div className="mt-4">
                           <div className="flex justify-between text-sm mb-2">
                             <span className="text-gray-600 dark:text-gray-400">Confidence Score</span>
                             <span className="font-bold text-gray-900 dark:text-gray-100">
-                              {(results.confidence_score * 100).toFixed(1)}%
+                              {((results.confidence_score ?? 0) * 100).toFixed(1)}%
                             </span>
                           </div>
                           <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-3">
                             <div
-                              className={`h-3 rounded-full transition-all duration-300 ${getConfidenceBadge(results.confidence_score).color}`}
-                              style={{ width: `${results.confidence_score * 100}%` }}
+                              className={`h-3 rounded-full transition-all duration-300 ${getConfidenceBadge(results.confidence_score ?? 0).color}`}
+                              style={{ width: `${(results.confidence_score ?? 0) * 100}%` }}
                             ></div>
                           </div>
                         </div>
@@ -449,19 +449,6 @@ export default function UploadPage() {
                             {results.domain}
                           </Badge>
                         </div>
-                        {results.model_used && (
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <Brain className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                                AI Model
-                              </span>
-                            </div>
-                            <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-900 dark:text-purple-300 border border-purple-300 dark:border-purple-700">
-                              {results.model_used}
-                            </Badge>
-                          </div>
-                        )}
                       </div>
                     </div>
 
@@ -474,7 +461,7 @@ export default function UploadPage() {
                           Top Predictions
                         </h4>
                         <div className="space-y-2">
-                          {results.top_matches?.slice(0, 5).map((candidate, idx) => {
+                          {results.top_predictions?.slice(0, 5).map((candidate, idx) => {
                             const confidencePercent = (candidate.score * 100).toFixed(1)
                             const badge = getConfidenceBadge(candidate.score)
                             
@@ -552,15 +539,18 @@ export default function UploadPage() {
                         </p>
                       </div>
 
-                      {/* Narrative */}
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">
-                          Detailed Narrative
-                        </h4>
-                        <p className="text-gray-700 dark:text-gray-300 bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 px-4 py-3 rounded-lg text-sm leading-relaxed border border-pink-200 dark:border-pink-800">
-                          {results.narrative}
-                        </p>
-                      </div>
+                      {/* Explanation */}
+                      {results.explanation && (
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
+                            <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                            Explanation
+                          </h4>
+                          <p className="text-gray-700 dark:text-gray-300 bg-purple-50 dark:bg-purple-950/20 px-4 py-3 rounded-lg text-sm leading-relaxed border border-purple-200 dark:border-purple-800">
+                            {results.explanation}
+                          </p>
+                        </div>
+                      )}
 
                       {/* Validation Scores - Hidden */}
                       {results.validation && (

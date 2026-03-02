@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Brain, TrendingUp, Layers, Download, Sparkles } from "lucide-react"
+import type { Narrative } from "@/types"
 
 interface ResultsCardProps {
   results: {
-    predictions: Record<string, number>
-    top_prediction: Record<string, number> | { label: string | number; score: number }
-    narrative?: string
+    predictions?: Record<string, number>
+    top_prediction?: Record<string, number> | { label: string | number; score: number }
+    narrative?: Narrative | string
     explanation?: string
     reasoning?: {
       summary: string
@@ -22,7 +23,7 @@ interface ResultsCardProps {
       similarity_score?: number
     }
     visual_features?: string[]
-    domain_info: {
+    domain_info?: {
       domain: string
       confidence: number
       characteristics?: string[]
@@ -62,22 +63,25 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
   }
 
   // Sort predictions by confidence score
-  const sortedPredictions = Object.entries(results.predictions).sort(
+  const sortedPredictions = Object.entries(results.predictions || {}).sort(
     ([, a], [, b]) => b - a
   )
 
   // Handle both old and new top_prediction formats
   let topLabel: string
   let topScore: number
-  if ('label' in results.top_prediction && 'score' in results.top_prediction) {
+  if (results.top_prediction && 'label' in results.top_prediction && 'score' in results.top_prediction) {
     // New format: { label: string, score: number }
     topLabel = String(results.top_prediction.label)
     topScore = results.top_prediction.score
-  } else {
+  } else if (results.top_prediction) {
     // Old format: { "label_name": score }
     const topPrediction = Object.entries(results.top_prediction)[0]
     topLabel = topPrediction[0]
     topScore = topPrediction[1]
+  } else {
+    topLabel = 'Unknown'
+    topScore = 0
   }
 
   // Domain descriptions for better context
@@ -130,21 +134,19 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Domain Adaptation Info */}
+        {/* Domain Info - Prominent Display */}
         {results.domain_info && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <Layers className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                Domain Adaptation
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-blue-700 dark:text-blue-300 capitalize">
-                Detected: <strong>{results.domain_info.domain.replace(/_/g, ' ')}</strong>
-              </span>
-              <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700">
-                {Math.min(100, (results.domain_info.confidence * 100)).toFixed(0)}% confident
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 rounded-lg p-4 border border-purple-200 dark:border-purple-800 shadow-sm">
+            <div className="flex items-center gap-2">
+              <Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div>
+                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wide">Image Domain</span>
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 capitalize">
+                  {results.domain_info.domain.replace(/_/g, ' ')}
+                </p>
+              </div>
+              <Badge variant="outline" className="ml-auto bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700">
+                {Math.min(100, (results.domain_info.confidence * 100)).toFixed(0)}% match
               </Badge>
             </div>
           </div>
@@ -212,6 +214,19 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
               </p>
             )}
           </div>
+        </div>
+
+        {/* Explanation Section */}
+        {results.explanation && (
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+              <span>💡</span> Explanation
+            </h3>
+            <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+              {results.explanation}
+            </p>
+          </div>
+        )}
 
         {/* Attributes Extracted */}
         {results.visual_features && results.visual_features.length > 0 && (

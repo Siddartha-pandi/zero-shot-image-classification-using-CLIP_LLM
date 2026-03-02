@@ -203,14 +203,22 @@ async def classify_hybrid(
             domain_scores=domain_scores
         )
         
-        # Generate detailed narrative
-        narrative = generate_detailed_narrative(
+        # Generate detailed narrative with short and detailed versions
+        narrative_result = generate_detailed_narrative(
             domain=domain,
             model_used=model_used,
             prediction=prediction_label,
             caption=llm_result["caption"],
             top_matches=predictions
         )
+        
+        # Determine narrative confidence based on classification score
+        if confidence_score >= 0.7:
+            narrative_confidence = "High"
+        elif confidence_score >= 0.4:
+            narrative_confidence = "Medium"
+        else:
+            narrative_confidence = "Low"
         
         # Extract objects
         objects = extract_objects_hybrid(
@@ -222,32 +230,54 @@ async def classify_hybrid(
         # Compute inference time
         inference_time = time.time() - start_time
         
-        # Prepare response
+        # Format domain name for display (e.g., "medical_image" -> "Medical Imaging")
+        domain_display = domain.replace("_", " ").title()
+        
+        # Format model name for display
+        model_display = model_used.replace("_", " ").title() if "_" in model_used else model_used
+        
+        # Format prediction for display
+        prediction_display = prediction_label.replace("_", " ").title()
+        
+        # Prepare structured response in user's desired format
         response = {
-            "domain": domain,
-            "model_used": model_used,
-            "prediction": prediction_label,
-            "confidence_score": round(confidence_score, 4),
+            "domain": domain_display,
+            "model_used": model_display,
+            "prediction": prediction_display,
+            "confidence": round(confidence_score, 2),  # Round to 2 decimal places for cleaner display
+            "top_predictions": [
+                {
+                    "label": pred["label"].replace("_", " ").title(),
+                    "score": round(pred["score"], 2)
+                }
+                for pred in predictions[:5]  # Return top 5
+            ],
             "caption": llm_result["caption"],
             "explanation": llm_result["explanation"],
-            "risk_notes": llm_result.get("risk_notes", ""),
-            "narrative": narrative,
-            "objects": objects,
-            "top_matches": [
-                {
-                    "label": pred["label"],
-                    "score": round(pred["score"], 4)
-                }
-                for pred in predictions
-            ],
-            "domain_scores": {
-                k: round(v, 4) for k, v in domain_scores.items()
+            "narrative": {
+                "short": narrative_result.get("short", ""),
+                "detailed": narrative_result.get("detailed", ""),
+                "confidence": narrative_confidence
             },
-            "inference_time_seconds": round(inference_time, 3),
+            "risk_notes": llm_result.get("risk_notes", ""),
+            "objects": [
+                {
+                    "name": obj.get("name", "").replace("_", " ").title(),
+                    "score": obj.get("score", 0)
+                }
+                for obj in objects
+            ],
             "metadata": {
+                "raw_domain": domain,
                 "domain_confidence": round(domain_confidence, 4),
                 "raw_prediction_score": round(prediction_score, 4),
                 "total_labels_evaluated": len(labels),
+                "inference_time_seconds": round(inference_time, 3),
+                "model_details": {
+                    "name": model_used,
+                    "routing": "Automatic domain detection with model selection",
+                    "medical_detected": domain.lower() in ["medical", "medical_image"]
+                },
                 "confidence_explanation": get_confidence_explanation(
                     confidence_score, domain, model_used
                 )
@@ -387,14 +417,22 @@ async def classify_open_ended(
             domain_scores=domain_scores_full
         )
         
-        # Generate detailed narrative
-        narrative = generate_detailed_narrative(
+        # Generate detailed narrative with short and detailed versions
+        narrative_result = generate_detailed_narrative(
             domain=domain,
             model_used=model_used,
             prediction=prediction_label,
             caption=llm_result["caption"],
             top_matches=predictions
         )
+        
+        # Determine narrative confidence based on classification score
+        if confidence_score >= 0.7:
+            narrative_confidence = "High"
+        elif confidence_score >= 0.4:
+            narrative_confidence = "Medium"
+        else:
+            narrative_confidence = "Low"
         
         # Extract objects (again for final response)
         objects = extract_objects_hybrid(
@@ -405,45 +443,55 @@ async def classify_open_ended(
         
         inference_time = time.time() - start_time
         
-        # Build response
+        # Format domain name for display
+        domain_display = domain.replace("_", " ").title()
+        model_display = model_used.replace("_", " ").title() if "_" in model_used else model_used
+        prediction_display = prediction_label.replace("_", " ").title()
+        
+        # Build response in structured format
         response = {
-            "label": prediction_label,
-            "confidence": round(confidence_score, 4),
+            "domain": domain_display,
+            "model_used": model_display,
+            "prediction": prediction_display,
+            "confidence": round(confidence_score, 2),
+            "top_predictions": [
+                {
+                    "label": pred["label"].replace("_", " ").title(),
+                    "score": round(pred["score"], 2)
+                }
+                for pred in predictions[:5]
+            ],
             "caption": caption,
             "explanation": llm_result["explanation"],
-            "narrative": narrative,
-            "candidates": [
-                {
-                    "label": pred["label"],
-                    "score": round(pred["score"], 4),
-                    "confidence": get_confidence_explanation(pred["score"], domain, model_used)
-                }
-                for pred in predictions
-            ],
-            "objects": objects,
-            "domain": domain,
-            "model_used": model_used,
-            "domain_scores": {
-                k: round(v, 4) for k, v in domain_scores_full.items()
+            "narrative": {
+                "short": narrative_result.get("short", ""),
+                "detailed": narrative_result.get("detailed", ""),
+                "confidence": narrative_confidence
             },
-            "inference_time_seconds": round(inference_time, 3),
+            "risk_notes": llm_result.get("risk_notes", ""),
+            "objects": [
+                {
+                    "name": obj.get("name", "").replace("_", " ").title(),
+                    "score": obj.get("score", 0)
+                }
+                for obj in objects
+            ],
             "metadata": {
+                "raw_domain": domain,
                 "domain_confidence": round(domain_confidence, 4),
                 "raw_prediction_score": round(prediction_score, 4),
                 "total_labels_evaluated": len(labels),
-                "labels_evaluated": labels,
-                "open_ended_mode": user_text is None,
-                "confidence_explanation": get_confidence_explanation(
-                    confidence_score, domain, model_used
-                ),
+                "inference_time_seconds": round(inference_time, 3),
+                "model_details": {
+                    "name": model_used,
+                    "mode": "open-ended" if user_text is None else "guided",
+                    "labels_evaluated": labels if user_text is not None else []
+                },
                 "semantic_validation": {
                     "is_consistent": validation_result["is_consistent"],
                     "alignment_score": round(validation_result["alignment_score"], 4),
                     "verdict": validation_result["verdict"],
-                    "confidence_adjustment_factor": round(validation_result["confidence_adjustment"], 3),
-                    "similarity_scores": {
-                        k: round(v, 4) for k, v in validation_result["scores"].items()
-                    }
+                    "confidence_adjustment_factor": round(validation_result["confidence_adjustment"], 3)
                 }
             }
         }

@@ -1,4 +1,4 @@
-import type { NextAuthConfig } from "next-auth"
+import type { NextRequest } from "next/server"
 
 // Edge-safe auth config for middleware (no OAuth providers)
 export const authConfig = {
@@ -7,7 +7,8 @@ export const authConfig = {
     signIn: "/",
   },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
+    authorized({ auth, request }: { auth: any; request: NextRequest }) {
+      const { nextUrl } = request
       const isLoggedIn = !!auth?.user
       const isOnProtected = 
         nextUrl.pathname.startsWith("/home") ||
@@ -21,4 +22,5 @@ export const authConfig = {
       return true
     },
   },
-} satisfies NextAuthConfig
+} as any
+

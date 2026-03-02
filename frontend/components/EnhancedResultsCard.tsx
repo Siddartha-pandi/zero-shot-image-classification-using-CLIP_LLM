@@ -197,33 +197,19 @@ export default function EnhancedResultsCard({
           </section>
         )}
 
-        {/* NARRATIVE DESCRIPTION */}
-        <section>
-          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            📝 Narrative Description
-          </h3>
-          <div className="space-y-3">
+        {/* EXPLANATION SECTION */}
+        {resultCard.explanation && (
+          <section>
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              💡 Explanation
+            </h3>
             <div className="p-3 rounded-lg border bg-card">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Short Summary
-                </span>
-                <Badge className={getConfidenceBadgeColor(resultCard.narrative.confidence)}>
-                  {resultCard.narrative.confidence}
-                </Badge>
-              </div>
-              <p className="text-base">{resultCard.narrative.short}</p>
-            </div>
-            <div className="p-3 rounded-lg border bg-muted/30">
-              <p className="text-sm font-medium text-muted-foreground mb-2">
-                Detailed Analysis
-              </p>
               <p className="text-sm leading-relaxed">
-                {resultCard.narrative.detailed}
+                {resultCard.explanation}
               </p>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* DOMAIN ADAPTATION */}
         <section>

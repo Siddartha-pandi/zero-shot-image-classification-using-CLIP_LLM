@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { BarChart3, ChevronDown, ChevronUp } from 'lucide-react'
+import { BarChart3, ChevronDown, ChevronUp, TrendingUp, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { EvaluationMetrics } from '@/types'
 
