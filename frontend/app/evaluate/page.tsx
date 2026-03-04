@@ -262,14 +262,14 @@ export default function EvaluatePage() {
 
           {/* Success/Error Messages */}
           {success && (
-            <div className="bg-black dark:bg-white/20 border border-black dark:border-white text-white dark:text-white px-4 py-3 rounded-lg flex items-center gap-2">
+            <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-4 py-3 rounded-lg flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
               {success}
             </div>
           )}
           
           {error && (
-            <div className="bg-black dark:bg-white/20 border border-black dark:border-white text-white dark:text-white px-4 py-3 rounded-lg flex items-center gap-2">
+            <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
               {error}
             </div>
@@ -307,12 +307,12 @@ export default function EvaluatePage() {
               {files.map((item, index) => (
                 <div key={index} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                   {/* Status Indicator */}
-                  <div className="shrink-0">
+                  <div className="flex-shrink-0">
                     {item.status === 'success' && (
-                      <CheckCircle2 className="h-5 w-5 text-black dark:text-white" />
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
                     )}
                     {item.status === 'error' && (
-                      <AlertCircle className="h-5 w-5 text-black dark:text-white" />
+                      <AlertCircle className="h-5 w-5 text-red-500" />
                     )}
                     {item.status === 'processing' && (
                       <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />

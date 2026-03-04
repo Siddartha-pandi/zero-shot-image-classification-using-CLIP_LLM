@@ -34,16 +34,14 @@ router = APIRouter(prefix="/api", tags=["classification"])
 # Default class labels for different domains
 DEFAULT_LABELS = {
     "medical": [
-        # Radiography - Chest X-ray
+        # Anatomical structures
         "chest x-ray",
-        "normal chest x-ray",
-        "abnormal chest x-ray",
         "lung",
         "heart",
         "rib cage",
         "spine",
         "diaphragm",
-        # Chest X-ray findings
+        # Common findings/diseases
         "pneumonia",
         "pulmonary opacity",
         "consolidation",
@@ -56,43 +54,12 @@ DEFAULT_LABELS = {
         "lung mass",
         "infiltrate",
         "interstitial marking",
+        # Status
+        "normal chest x-ray",
+        "abnormal chest x-ray",
         "clear lung fields",
         "lung infection",
-        "pulmonary disease",
-        # Neuroimaging - Brain
-        "brain mri",
-        "brain tumor mri",
-        "normal brain scan",
-        "brain ct scan",
-        "brain tissue",
-        "ventricles",
-        "cerebral structure",
-        # CT Scans
-        "ct scan",
-        "abdominal ct",
-        "chest ct",
-        "brain ct",
-        "organ cross-section imaging",
-        # Dermatology
-        "skin lesion",
-        "melanoma",
-        "benign mole",
-        "dermatological image",
-        "pigmented lesion",
-        "skin cancer",
-        "nevus",
-        # Ophthalmology - Retinal
-        "retinal fundus",
-        "retinal fundus image",
-        "diabetic retinopathy",
-        "healthy retina",
-        "optic disc",
-        "retinal vessels",
-        "fundus photograph",
-        # General medical imaging
-        "medical scan",
-        "diagnostic imaging",
-        "radiological image"
+        "pulmonary disease"
     ],
     "fashion": [
         "dress",
@@ -124,40 +91,12 @@ DEFAULT_LABELS = {
         "buildings"
     ],
     "industrial": [
-        # Surface defects
-        "surface crack",
-        "structural fracture",
-        "metal crack",
-        "crack defect",
-        # Corrosion and oxidation
-        "metal corrosion",
-        "rust formation",
-        "surface oxidation",
-        "corrosion damage",
-        # Scratches and abrasion
-        "surface scratch",
-        "metal scratch",
-        "abrasion damage",
-        "scratch marks",
-        # Wear and tear
-        "surface wear",
-        "mechanical wear",
-        "wear and tear",
-        # Material failures
-        "metal fracture",
-        "material breakage",
-        "structural failure",
-        "deformation",
-        # Quality states
-        "defect-free surface",
-        "normal metal surface",
-        "damaged surface",
-        "manufacturing defect",
-        # General categories
         "machinery",
-        "factory equipment",
-        "industrial component",
-        "metal surface"
+        "factory",
+        "assembly line",
+        "warehouse",
+        "industrial equipment",
+        "manufacturing"
     ],
     "natural": [
         "dog",

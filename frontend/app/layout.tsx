@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CLIP-LLM Zero-Shot Image Classification",
+  title: "Adaptive CLIP-LLM Framework",
   description: "Zero-Shot Image Classification with Domain Adaptation",
 };
 

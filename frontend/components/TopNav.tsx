@@ -2,7 +2,7 @@
 
 import { ThemeToggle } from "@/components/theme-toggle"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { User, LogOut } from "lucide-react"
+import { Brain, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react"
 import { useSession } from "next-auth/react"
@@ -14,17 +14,18 @@ import {
 } from "@/components/ui/tooltip"
 
 export function TopNav() {
-  const session = useSession() as { data: any }
+  const { data: session } = useSession()
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60\">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Left side - Sidebar trigger and Logo */}
         <div className="flex items-center gap-4">
           <SidebarTrigger />
           <div className="flex items-center gap-2">
+            <Brain className="h-6 w-6 text-primary" />
             <div className="hidden sm:block">
-              <h1 className="font-bold text-lg">CLIP-LLM Zero-Shot Image Classification</h1>
+              <h1 className="font-bold text-lg">CLIP-LLM</h1>
             </div>
           </div>
         </div>
@@ -33,16 +34,16 @@ export function TopNav() {
         <div className="flex items-center gap-3">
           <ThemeToggle />
           
-          {session.data?.user && (
+          {session?.user && (
             <TooltipProvider>
               <div className="flex items-center gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" size="icon" className="h-9 w-9 rounded-full">
-                      {session.data.user.image ? (
+                      {session.user.image ? (
                         <img 
-                          src={session.data.user.image} 
-                          alt={session.data.user.name || "User"} 
+                          src={session.user.image} 
+                          alt={session.user.name || "User"} 
                           className="h-9 w-9 rounded-full"
                         />
                       ) : (
@@ -52,7 +53,7 @@ export function TopNav() {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{session.data.user.name || session.data.user.email}</p>
+                    <p>{session.user.name || session.user.email}</p>
                   </TooltipContent>
                 </Tooltip>
                 

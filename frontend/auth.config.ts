@@ -7,7 +7,7 @@ export const authConfig = {
     signIn: "/",
   },
   callbacks: {
-    authorized({ auth, request }: { auth: { user?: unknown } | null; request: NextRequest }) {
+    authorized({ auth, request }: { auth: any; request: NextRequest }) {
       const { nextUrl } = request
       const isLoggedIn = !!auth?.user
       const isOnProtected = 
@@ -22,5 +22,5 @@ export const authConfig = {
       return true
     },
   },
-}
+} as any
 

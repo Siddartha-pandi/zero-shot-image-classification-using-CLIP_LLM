@@ -3,8 +3,6 @@ import type { ClassificationResult, AddClassResponse } from '@/types'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
-type EvaluationResult = Record<string, unknown>
-
 class APIClient {
   private client: AxiosInstance
 
@@ -124,7 +122,7 @@ class APIClient {
   async evaluateDataset(
     imageFiles: File[],
     labels: string[]
-  ): Promise<EvaluationResult> {
+  ): Promise<any> {
     const formData = new FormData()
     imageFiles.forEach((file) => {
       formData.append('files', file)
@@ -133,7 +131,7 @@ class APIClient {
       formData.append('labels', label)
     })
 
-    const response = await this.client.post<EvaluationResult>(
+    const response = await this.client.post<any>(
       '/api/evaluate',
       formData,
       {

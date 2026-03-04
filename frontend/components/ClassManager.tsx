@@ -92,7 +92,7 @@ export default function ClassManager() {
     <Card className="shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Tag className="h-5 w-5 text-black dark:text-white" />
+          <Tag className="h-5 w-5 text-purple-600" />
           Class Manager
         </CardTitle>
         <CardDescription>
@@ -115,13 +115,13 @@ export default function ClassManager() {
               <RefreshCw className={`h-4 w-4 ${isLoadingClasses ? 'animate-spin' : ''}`} />
             </Button>
           </div>
-          <div className="flex flex-wrap gap-2 p-3 bg-black dark:bg-white rounded-lg min-h-15">
+          <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg min-h-[60px]">
             {isLoadingClasses ? (
               <div className="w-full flex items-center justify-center py-4">
-                <Loader2 className="h-5 w-5 animate-spin text-white dark:text-black" />
+                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
               </div>
             ) : classes.length === 0 ? (
-              <p className="text-sm text-white dark:text-black w-full text-center py-2">
+              <p className="text-sm text-gray-400 w-full text-center py-2">
                 No classes added yet. Add your first class below!
               </p>
             ) : (
@@ -160,12 +160,12 @@ export default function ClassManager() {
                   disabled={isLoading}
                   className={`p-3 text-left rounded-lg border-2 transition-all ${
                     selectedDomain === domain.value
-                      ? 'border-black bg-black dark:bg-white/20'
-                      : 'border-black dark:border-white hover:border-black'
+                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
                   } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <div className="font-medium text-sm">{domain.label}</div>
-                  <div className="text-xs text-black dark:text-white">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
                     {domain.description}
                   </div>
                 </button>
@@ -197,8 +197,8 @@ export default function ClassManager() {
           <div
             className={`flex items-center gap-2 p-3 rounded-lg ${
               message.type === 'success'
-                ? 'bg-black dark:bg-white text-white dark:text-black'
-                : 'bg-black dark:bg-white text-white dark:text-black'
+                ? 'bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400'
+                : 'bg-red-50 dark:bg-red-950/20 text-red-800 dark:text-red-400'
             }`}
           >
             {message.type === 'success' ? (

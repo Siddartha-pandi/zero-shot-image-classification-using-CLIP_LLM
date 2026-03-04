@@ -18,26 +18,26 @@ declare module 'next-auth' {
 
   namespace NextAuth {
     interface NextAuthConfig {
-      [key: string]: unknown
+      [key: string]: any
     }
   }
 
   // NextAuth is callable and returns handlers, auth, signIn, signOut
-  function NextAuth(config: unknown): {
-    handlers: { GET: unknown; POST: unknown }
-    auth: (...args: unknown[]) => unknown
-    signIn: (provider?: string, options?: Record<string, unknown>) => Promise<unknown>
-    signOut: (options?: Record<string, unknown>) => Promise<void>
+  function NextAuth(config: any): {
+    handlers: { GET: any; POST: any }
+    auth: (...args: any[]) => any
+    signIn: (provider?: string, options?: any) => Promise<any>
+    signOut: (options?: any) => Promise<void>
   }
 
   export default NextAuth
 }
 
 declare module 'next-auth/react' {
-  export function SessionProvider(props: Record<string, unknown>): React.JSX.Element
-  export function useSession(): unknown
-  export function signIn(provider?: string, options?: Record<string, unknown>): Promise<unknown>
-  export function signOut(options?: Record<string, unknown>): Promise<void>
+  export function SessionProvider(props: any): React.JSX.Element
+  export function useSession(): any
+  export function signIn(provider?: string, options?: any): Promise<any>
+  export function signOut(options?: any): Promise<void>
 }
 
 
