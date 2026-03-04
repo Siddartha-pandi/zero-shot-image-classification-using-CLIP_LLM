@@ -17,16 +17,16 @@ DomainType = Literal["medical", "fashion", "traffic", "satellite", "industrial",
 
 # Domain detection prompts - more distinctive keywords for better differentiation
 DOMAIN_PROMPTS = {
-    "medical": "x-ray scan radiograph ct mri ultrasound medical diagnosis hospital clinical anatomy organs tissue",
-    "fashion": "clothing apparel fashion model outfit dress suit shoes accessories wear style",
-    "traffic": "road street traffic car truck vehicle automobile pedestrian crossing intersection highway",
-    "satellite": "aerial view satellite map birds eye top-down landscape grid pattern terrain",
-    "industrial": "factory warehouse machinery equipment industrial production manufacturing heavy metal construction",
-    "natural": "nature outdoor landscape scenery sky tree flower grass mountain water animal wildlife"
+    "medical": "x-ray scan radiograph ct mri ultrasound medical diagnosis hospital clinical anatomy organs tissue bone skeleton fracture disease pathology",
+    "fashion": "clothing apparel dress shirt pants jacket shoes accessories fashion style model outfit",
+    "traffic": "car truck bus motorcycle bicycle pedestrian traffic sign road highway street vehicle intersection",
+    "satellite": "satellite aerial top view remote sensing Earth observation urban area vegetation water map overhead",
+    "industrial": "factory warehouse machinery equipment industrial production manufacturing heavy metal construction assembly line workspace",
+    "natural": "animal plant landscape outdoor nature person dog cat bird tree flower everyday scene scenery photo"
 }
 
-# Domain confidence thresholds - higher threshold for medical to avoid false positives
-MEDICAL_THRESHOLD = 0.40  # Increased from 0.25 to be more conservative
+# Domain confidence thresholds
+MEDICAL_THRESHOLD = 0.10  # Lowered so MedCLIP activates for fractures and standard x-rays reliably
 TRAFFIC_THRESHOLD = 0.35  # Add minimum threshold for traffic detection
 
 class DomainRouter:
@@ -45,6 +45,7 @@ class DomainRouter:
         try:
             logger.info("⚡ Initializing ViT-L-14 model (openai pretrained)...")
             self.vith14 = get_vith14_model()
+            self.vith14._ensure_loaded()
             logger.info("✓ ViT-L-14 ready (768-dim embeddings, OpenAI pretrained)")
         except Exception as e:
             logger.error(f"Failed to initialize ViT-H/14: {e}", exc_info=True)
@@ -53,6 +54,7 @@ class DomainRouter:
         try:
             logger.info("Initializing MedCLIP model...")
             self.medclip = get_medclip_model()
+            self.medclip._ensure_loaded()
             logger.info("✓ MedCLIP model initialized")
         except Exception as e:
             logger.error(f"Failed to initialize MedCLIP: {e}", exc_info=True)
@@ -130,19 +132,13 @@ class DomainRouter:
         
         # Medical routing only if:
         # 1. Detected domain IS medical AND
-        # 2. Medical score is high enough AND
-        # 3. Medical score is noticeably better than natural score
+        # 2. Medical score is high enough
         medical_score = domain_scores.get("medical", 0)
-        natural_score = domain_scores.get("natural", 0)
-        traffic_score = domain_scores.get("traffic", 0)
         
         # Use MedCLIP only if medical is clearly the best option
-        if (domain == "medical" and 
-            medical_score >= MEDICAL_THRESHOLD and 
-            (medical_score - natural_score) > 0.05 and
-            (medical_score - traffic_score) > 0.05):
+        if domain == "medical" and medical_score >= MEDICAL_THRESHOLD:
             model_name = "MedCLIP"
-            logger.info(f"Using MedCLIP: medical={medical_score:.3f}, natural={natural_score:.3f}, traffic={traffic_score:.3f}")
+            logger.info(f"Using MedCLIP: medical={medical_score:.3f}")
         else:
             # Use ViT-H/14 for all other cases (more robust for non-medical)
             model_name = "ViT-H/14"
@@ -156,7 +152,8 @@ class DomainRouter:
         self,
         image: Image.Image,
         labels: list,
-        top_k: int = 5
+        top_k: int = 5,
+        force_model: str = None
     ) -> dict:
         """
         Classify image with automatic model routing
@@ -165,12 +162,17 @@ class DomainRouter:
             image: PIL Image
             labels: List of possible class labels
             top_k: Number of top predictions
+            force_model: "MedCLIP" or "ViT-H/14" to skip auto-detection
             
         Returns:
             Classification results with routing information
         """
         # Determine which model to use
-        model_name, domain, domain_conf, domain_scores = self.route(image)
+        if force_model:
+            model_name = force_model
+            domain, domain_conf, domain_scores = self.estimate_domain(image)
+        else:
+            model_name, domain, domain_conf, domain_scores = self.route(image)
         
         logger.info(
             f"🎯 Routing Classification:"

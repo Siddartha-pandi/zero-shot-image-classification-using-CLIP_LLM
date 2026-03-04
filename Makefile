@@ -119,7 +119,7 @@ start:
 	@echo ""
 
 start-backend:
-	cd backend && $(PYTHON) -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+	cd backend && $(PYTHON) -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 
 start-frontend:
 	cd frontend && $(NPM) run dev

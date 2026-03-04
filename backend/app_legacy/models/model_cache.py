@@ -188,7 +188,21 @@ class ModelLoader:
                 logger.info("Creating MedCLIP...")
                 processor = MedCLIPProcessor()
                 model = MedCLIPBase(vision_cls=MedCLIPVisionModelViT)
-                model.from_pretrained()
+                
+                # Patch torch.load temporarily to fix MedCLIP serialization issue on CPU
+                import builtins
+                original_load = torch.load
+                def safe_load(*args, **kwargs):
+                    if 'map_location' not in kwargs:
+                        kwargs['map_location'] = 'cpu'
+                    return original_load(*args, **kwargs)
+                
+                try:
+                    torch.load = safe_load
+                    model.from_pretrained()
+                finally:
+                    torch.load = original_load
+                    
                 model = model.to(DEVICE)
                 model.eval()
                 
@@ -204,6 +218,10 @@ class ModelLoader:
             except ImportError:
                 # Fallback to lightweight model
                 logger.warning("MedCLIP not available, using CLIP ViT-B-16 fallback")
+                return ModelLoader.load_clip_model_fast("ViT-B-16")
+            except Exception as e:
+                # Fallback on any exception (like download failure, CUDA errors, etc)
+                logger.warning(f"Failed to load MedCLIP ({e}), using CLIP ViT-B-16 fallback")
                 return ModelLoader.load_clip_model_fast("ViT-B-16")
         
         return cached_load("medclip", _load)

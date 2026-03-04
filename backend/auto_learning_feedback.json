@@ -1,0 +1,16 @@
+{
+  "by_domain": {
+    "animal": {
+      "flamingo": {
+        "support": 4,
+        "captions": [
+          "a pink flaming standing in a body of water",
+          "a pink flaming standing in a body of water",
+          "a pink flaming standing in a body of water",
+          "a pink flaming standing in a body of water"
+        ]
+      }
+    }
+  },
+  "corrections": {}
+}

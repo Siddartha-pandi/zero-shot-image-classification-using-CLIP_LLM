@@ -8,7 +8,9 @@ KEYWORDS = {
         "xray", "x-ray", "ct", "mri", "scan", "radiograph", "chest", "lung", "lungs",
         "rib", "ribs", "opacity", "pulmonary", "cardiac", "heart", "bone", "fracture",
         "medical", "clinical", "diagnostic", "anatomy", "radiology", "imaging",
-        "patient", "thorax", "abdomen", "skull", "spine", "vertebra"
+        "patient", "thorax", "abdomen", "skull", "spine", "vertebra",
+        "alzheimer", "retinopathy", "cyst", "glaucoma", "glioma", "leukemia", 
+        "osteoarthritis", "tuberculosis", "brain", "eye", "skin", "blood", "tumor"
     ],
     "anime": ["anime", "manga", "cartoon", "illustration", "character", "animated"],
     "satellite": ["satellite", "aerial", "top view", "remote sensing", "overhead", "bird's eye"],
@@ -35,7 +37,9 @@ def infer_domain_from_caption(caption: str) -> Domain:
     medical_indicators = [
         "chest", "lung", "lungs", "xray", "x-ray", "rib", "ribs",
         "medical", "radiograph", "scan", "ct", "mri", "opacity",
-        "pulmonary", "cardiac", "bone", "anatomy", "radiology"
+        "pulmonary", "cardiac", "bone", "anatomy", "radiology",
+        "alzheimer", "retinopathy", "cyst", "glaucoma", "glioma", "leukemia", 
+        "osteoarthritis", "tuberculosis", "brain", "eye", "skin", "blood", "tumor"
     ]
     if any(word in c for word in medical_indicators):
         return "medical"

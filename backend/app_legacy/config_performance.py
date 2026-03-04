@@ -12,7 +12,7 @@ ENABLE_MIXED_PRECISION = True  # Use fp16 for faster inference on GPU
 # Model Loading Configuration
 ENABLE_MODEL_CACHING = True  # Cache loaded models in memory
 CACHE_DIRECTORY = os.path.join(os.path.dirname(__file__), "..", ".cache")
-PARALLEL_MODEL_LOADING = False  # Load models sequentially (True for async, needs refactor)
+PARALLEL_MODEL_LOADING = True  # Load models sequentially (True for async, needs refactor)
 
 # Inference Optimization
 BATCH_SIZE = 1  # Adjust for throughput vs latency

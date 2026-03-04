@@ -22,13 +22,14 @@ class APIClient {
   ): Promise<ClassificationResult> {
     const formData = new FormData()
     formData.append('file', imageFile)
+
+    // Pass userText as user_text to match backend expectations (was custom_labels previously)
     if (userText) {
-      formData.append('custom_labels', userText)
+      formData.append('user_text', userText)
     }
-    formData.append('top_k', '10')
 
     const response = await this.client.post<ClassificationResult>(
-      '/api/classify-hybrid',
+      '/api/classify',
       formData,
       {
         headers: {

@@ -150,7 +150,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
         )}
 
         {/* Top Prediction Highlight */}
-        <div className="bg-gray-50 dark:bg-gray-950 rounded-xl p-5 border-2 border-black dark:border-white shadow-sm">
+        <div className="bg-gray-50 dark:bg-gray-950 rounded-xl p-5 border border-black dark:border-white shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-black dark:text-white">
               Top Prediction
@@ -179,7 +179,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
                   {Math.min(100, (score * 100)).toFixed(1)}%
                 </span>
               </div>
-              <div className=\"h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden shadow-inner\">
+              <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden shadow-inner">
                 <div
                   className="h-full gradient-bar transition-all duration-700 ease-out rounded-full"
                   style={{ width: `${Math.min(100, score * 100)}%` }}

@@ -9,7 +9,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-lg border-2 border-black dark:border-white bg-white dark:bg-black">
+        <Card className="shadow-lg border border-black dark:border-white bg-white dark:bg-black">
           <CardHeader className="space-y-3">
             <CardTitle className="text-center text-2xl text-black dark:text-white">Sign In</CardTitle>
             <CardDescription className="text-center text-gray-700 dark:text-gray-300">
@@ -28,7 +28,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full bg-black dark:bg-white text-white dark:text-black border-2 border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 transition-all font-semibold"
+                  className="w-full bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 transition-all font-semibold"
                 >
                   <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                     <path

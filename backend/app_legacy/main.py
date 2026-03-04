@@ -20,9 +20,9 @@ from .clip_service import (
 )
 from .caption_service import generate_caption
 from .domain_service import infer_domain_from_hint, infer_domain
-from .llm_service import llm_reason_and_label, llm_narrative, extract_objects
+from .llm_service import llm_reason_and_label, llm_narrative, extract_objects, extract_domain_and_classes
 from .evaluation_service import evaluate_dataset
-from .config_performance import PRELOAD_MODELS
+from .config_performance import PRELOAD_MODELS, PARALLEL_MODEL_LOADING
 from .models.router import get_router
 from .models.model_cache import log_memory_usage
 
@@ -62,8 +62,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include hybrid classification routes
-app.include_router(classify_router)
+# Include hybrid classification routes (disabled as we use the unified /api/classify)
+# app.include_router(classify_router)
 
 
 @app.on_event("startup")
@@ -79,15 +79,33 @@ async def startup_event():
         
         try:
             # Preload all models
-            logger.info("\n📦 Loading ViT-H/14 and MedCLIP models...")
             start_time = time.time()
             
-            # Load router (triggers ViT-H/14 and MedCLIP loading)
-            router = get_router()
-            
-            # Load caption model
-            logger.info("📦 Loading BLIP caption model...")
-            _ = generate_caption(Image.new('RGB', (224, 224)))
+            if PARALLEL_MODEL_LOADING:
+                logger.info("\n📦 Loading models in parallel...")
+                import concurrent.futures
+                from .models.clip_vith14 import get_vith14_model
+                from .models.medclip_model import get_medclip_model
+                from .caption_service import _load_caption_model
+                
+                with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+                    futures = [
+                        executor.submit(get_vith14_model()._ensure_loaded),
+                        executor.submit(get_medclip_model()._ensure_loaded),
+                        executor.submit(_load_caption_model)
+                    ]
+                    for future in concurrent.futures.as_completed(futures):
+                        future.result()
+                        
+                router = get_router()
+                router._ensure_loaded()
+            else:
+                logger.info("\n📦 Loading ViT-H/14 and MedCLIP models sequentially...")
+                router = get_router()
+                router._ensure_loaded()
+                
+                logger.info("📦 Loading BLIP caption model...")
+                _ = generate_caption(Image.new('RGB', (224, 224)))
             
             load_time = time.time() - start_time
             log_memory_usage()
@@ -125,55 +143,30 @@ def api_classes():
     return {"classes": list_classes()}
 
 
-@app.post("/api/init-medical-classes")
-def api_init_medical_classes():
-    """Initialize default medical imaging classes."""
-    try:
-        medical_classes = [
-            "lungs",
-            "rib cage",
-            "pulmonary opacity",
-            "heart",
-            "chest",
-            "normal chest x-ray",
-            "pneumonia",
-            "pleural effusion",
-            "atelectasis",
-            "cardiomegaly"
-        ]
-        
-        # Clear existing classes
-        CLASS_PROTOTYPES.clear()
-        
-        # Create prototypes for each medical class
-        for label in medical_classes:
-            create_class_prototype(label=label, domain="medical", images=None)
-        
-        return {
-            "status": "ok",
-            "message": f"Initialized {len(medical_classes)} medical classes",
-            "classes": medical_classes
-        }
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
-
 @app.post("/api/init-default-classes")
-def api_init_default_classes(domain: str = Form(default="natural")):
+def api_init_default_classes(domain: str = Form(default="animal")):
     """Initialize default classes for a given domain."""
     try:
         default_classes = {
-            "natural": ["dog", "cat", "bird", "car", "tree", "person", "building", "flower"],
             "medical": [
-                "lungs", "rib cage", "pulmonary opacity", "heart", "chest",
-                "normal chest x-ray", "pneumonia", "pleural effusion", "atelectasis", "cardiomegaly"
+                "chest x-ray", "ct scan", "mri", "ultrasound",
+                "normal chest x-ray", "pneumonia", "radiology image"
             ],
-            "anime": ["anime character", "manga character", "cartoon character"],
-            "satellite": ["road", "building", "vegetation", "water", "urban area"],
-            "sketch": ["portrait sketch", "landscape sketch", "object sketch"]
+            "industry": [
+                "factory", "machinery", "assembly line", "warehouse", 
+                "industrial equipment", "manufacturing plant"
+            ],
+            "vegetable": [
+                "carrot", "broccoli", "tomato", "potato", 
+                "leafy green", "root vegetable"
+            ],
+            "animal": [
+                "dog", "cat", "bird", "wildlife", 
+                "mammal", "reptile"
+            ]
         }
         
-        classes = default_classes.get(domain, default_classes["natural"])
+        classes = default_classes.get(domain, default_classes["animal"])
         
         # Clear existing classes
         CLASS_PROTOTYPES.clear()
@@ -230,86 +223,72 @@ async def api_add_class(
 @app.post("/api/classify")
 async def api_classify(
     file: UploadFile = File(...),
-    user_text: Optional[str] = Form(default=None),
 ):
     try:
         contents = await file.read()
         img = Image.open(io.BytesIO(contents)).convert("RGB")
-
-        # 1) Generate caption first (needed for domain detection)
+        
+        # 1) Generate caption first
         caption = generate_caption(img)
-
-        # 2) Infer domain from both caption and user hint
-        domain = infer_domain(caption=caption, user_hint=user_text or "")
-
-        # 3) Auto-initialize classes if none exist
-        if not CLASS_PROTOTYPES:
-            # Initialize based on detected domain
-            if domain == "medical":
-                medical_classes = [
-                    "lungs", "rib cage", "pulmonary opacity", "heart", "chest",
-                    "normal chest x-ray", "pneumonia", "pleural effusion", "atelectasis", "cardiomegaly"
-                ]
-                for label in medical_classes:
-                    create_class_prototype(label=label, domain="medical", images=None)
-            else:
-                # Initialize with general classes
-                general_classes = ["dog", "cat", "bird", "car", "tree", "person", "building", "flower"]
-                for label in general_classes:
-                    create_class_prototype(label=label, domain="natural", images=None)
-
-        # 4) CLIP classification (auto-tuning happens inside)
-        cls = classify_image(img, top_k=5)
-
-        # 5) LLM reasoning + narrative
+        
+        # 2) Dynamically extract possible candidate classes from caption to feed into CLIP
+        llm_metadata = extract_domain_and_classes(caption)
+        classes = llm_metadata.get("classes", ["object", "background feature"])
+        
+        # 3) Let the router estimate the domain visually
+        domain_router = get_router()
+        model_used, visual_domain, confidence, _ = domain_router.route(img)
+        
+        # 4) Setup dynamically generated classes for CLIP
+        CLASS_PROTOTYPES.clear()
+        for label in classes:
+            create_class_prototype(label=str(label), domain=visual_domain, images=None)
+            
+        # 5) Perform pure visual classification First
+        classification_result = domain_router.classify_with_routing(
+            image=img,
+            labels=classes,
+            top_k=3
+        )
+        
+        predictions = classification_result["predictions"]
+        model_used = classification_result["model_used"]  # May have dynamically switched
+        top_prediction = predictions[0]
+        prediction_label = str(top_prediction["label"]).title()
+        
+        # 6) LLM determines accurate explanations and final Domain name based on objects detected
         reasoning = llm_reason_and_label(
             caption=caption,
-            candidates=cls["candidates"],
-            user_hint=user_text or "",
-            domain=domain,
+            candidates=predictions,
+            user_hint="",
+            domain=visual_domain,
         )
-        narrative = llm_narrative(
-            caption=caption,
-            candidates=cls["candidates"],
-            user_hint=user_text or "",
-            domain=domain,
-        )
-
-        # 6) Extract objects from image
-        objects = extract_objects(
-            caption=caption,
-            candidates=cls["candidates"],
-            domain=domain,
-        )
-
-        # 7) Compute CLIP similarity scores for validation
-        img_vec = encode_image(img)
-        domain_similarity = compute_text_similarity(img_vec, domain)
-        caption_similarity = compute_text_similarity(img_vec, caption)
-
-        # 8) Compute final confidence using the specified formula:
-        # Confidence = 0.6 * DomainSim + 0.4 * CaptionSim
-        confidence_score = 0.6 * domain_similarity + 0.4 * caption_similarity
-
-        # 9) Return structured JSON response with all required fields
+        
+        # 7) Try to grab domain from reasoning if it generated one, fallback to the initial LLM guess
+        final_domain = reasoning.get("domain", llm_metadata.get("domain", "General Objects"))
+        final_domain_clean = str(final_domain).title()
+        if "Medical" in final_domain_clean and "Image" not in final_domain_clean:
+            final_domain_clean += " Images"
+            
+        # 8) Construct JSON Output exactly as requested
         return {
-            "domain": domain,
-            "confidence": confidence_score,
-            "objects": objects,
+            "domain": final_domain_clean,
+            "model_used": model_used,
+            "prediction": prediction_label,
+            "confidence": float(round(top_prediction["score"], 2)),
+            "top_predictions": [
+                {
+                    "label": str(pred["label"]).title(),
+                    "score": float(round(pred["score"], 2))
+                }
+                for pred in predictions[:3]
+            ],
             "caption": caption,
-            "explanation": reasoning["reason"],
-            "label": reasoning["label"],
-            "narrative": narrative,
-            "candidates": cls["candidates"],
-            "validation": {
-                "domain_similarity": domain_similarity,
-                "caption_similarity": caption_similarity,
-            }
+            "explanation": reasoning.get("reason", f"The image features characteristic properties of a {prediction_label.lower()}.")
         }
-    except RuntimeError as re:
-        # e.g. no classes defined
-        return JSONResponse(status_code=400, content={"error": str(re)})
+
     except Exception as e:
+        logger.error(f"Classification error: {e}", exc_info=True)
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 

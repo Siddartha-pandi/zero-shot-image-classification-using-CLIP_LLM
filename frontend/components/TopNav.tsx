@@ -23,8 +23,7 @@ export function TopNav() {
         <div className="flex items-center gap-4">
           <SidebarTrigger />
           <div className="hidden sm:block">
-            <h1 className="font-bold text-lg text-black dark:text-white">CLIP-LLM</h1>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Zero-Shot Image Classification</p>
+            <h1 className="font-bold text-lg text-black dark:text-white whitespace-nowrap">CLIP-LLM · Zero-Shot Image Classification</h1>
           </div>
         </div>
 

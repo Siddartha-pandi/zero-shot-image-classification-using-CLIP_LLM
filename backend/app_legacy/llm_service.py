@@ -77,14 +77,16 @@ Domain: {domain}
 1. Analyze the caption and candidates carefully
 2. Consider semantic alignment between caption and each candidate
 3. Choose the SINGLE MOST ACCURATE label that best describes the primary subject
-4. Provide a concise, evidence-based reason
+4. Determine the infinite/custom Domain (e.g. vintage vehicles, modern art, broken bones, architecture) based on the image subject.
+5. Provide a detailed, evidence-based explanation that is APPROXIMATELY 100 WORDS LONG. Describe why this label is correct and what visual features support it.
 
 ⚠️ ACCURACY IS CRITICAL - Choose conservatively if uncertain.
 
 Respond ONLY as valid JSON (no markdown blocks):
 {{
+  "domain": "<newly_identified_highly_specific_domain>",
   "label": "<most_accurate_label>",
-  "reason": "<evidence-based explanation>",
+  "reason": "<100-word explanation>",
   "confidence_multiplier": <0.8_to_1.2_adjustment_factor>
 }}
 """
@@ -95,7 +97,7 @@ Respond ONLY as valid JSON (no markdown blocks):
             generation_config=genai.types.GenerationConfig(
                 temperature=0.05,  # ULTRA-LOW for maximum accuracy
                 top_p=0.9,         # Reduce sampling diversity
-                max_output_tokens=150,
+                max_output_tokens=350,
             )
         )
         
@@ -258,3 +260,40 @@ Rules:
             {"name": c["label"], "score": round(c.get("score", 0), 2)}
             for c in candidates[:5] if c.get("score", 0) > 0.1
         ]
+
+def extract_domain_and_classes(caption: str) -> dict:
+    """Dynamically determine the domain and suggest 5-8 relevant classes for classification."""
+    if model is None:
+        return {"domain": "General", "classes": ["object", "person", "animal", "vehicle", "nature"]}
+    
+    prompt = f"""
+Given this image caption: "{caption}"
+
+1. What is the specific domain of this image? (e.g. Vehicles, Medical Images, Animals, Interior Design, Fashion, etc.)
+2. List 5 to 8 specific candidate object classes that might be in this image to use for image classification classification.
+
+Respond ONLY with valid JSON:
+{{
+  "domain": "Domain Name",
+  "classes": ["class1", "class2", "class3", "class4", "class5"]
+}}
+"""
+    try:
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.1,
+                max_output_tokens=150,
+            )
+        )
+        text = response.text.strip()
+        if text.startswith("```"):
+            lines = text.split("\n")
+            text = "\n".join([line for line in lines if not line.startswith("```")]).strip()
+        
+        parsed = json.loads(text)
+        return parsed
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error extracting domain/classes: {e}")
+        return {"domain": "General", "classes": ["object", "person", "animal", "vehicle", "nature"]}
