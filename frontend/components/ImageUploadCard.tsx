@@ -90,8 +90,8 @@ export default function ImageUploadCard({
         <div
           className={cn(
             "relative border-2 border-dashed rounded-xl h-full w-full flex flex-col items-center justify-center transition-all duration-300",
-            dragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20 scale-[1.02]" : "border-gray-300 dark:border-gray-700",
-            disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/10",
+            dragActive ? "border-black bg-black dark:bg-white/20 scale-[1.02]" : "border-black dark:border-white",
+            disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-black hover:bg-black/50 dark:hover:bg-white/10",
             preview || imagePreview ? "p-4" : "p-8"
           )}
           onDragEnter={handleDrag}
@@ -129,20 +129,20 @@ export default function ImageUploadCard({
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-sm text-gray-700 dark:text-gray-300 text-center font-medium truncate px-4 max-w-full pointer-events-none">
+              <p className="text-sm text-black dark:text-white text-center font-medium truncate px-4 max-w-full pointer-events-none">
                 {selectedImage?.name || 'Image uploaded'}
               </p>
             </div>
           ) : (
             <div className="text-center space-y-2">
-              <div className="bg-blue-100 dark:bg-blue-900/30 w-12 h-12 rounded-xl flex items-center justify-center mx-auto">
-                <Image className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="bg-black dark:bg-white w-12 h-12 rounded-xl flex items-center justify-center mx-auto">
+                <Image className="h-6 w-6 text-white dark:text-black" />
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                <p className="text-sm font-semibold text-black dark:text-white">
                   Drop image here or click to browse
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-black dark:text-white">
                   JPG, PNG, GIF up to 10MB
                 </p>
               </div>

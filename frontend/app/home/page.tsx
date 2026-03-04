@@ -9,24 +9,21 @@ export default function HomePage() {
       {/* Hero Section */}
       <div className="text-center space-y-5">
         <div className="flex items-center justify-center gap-3">
-          <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-2xl shadow-lg">
-            <Brain className="h-10 w-10 text-white" />
-          </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Adaptive CLIP-LLM Framework
+          <h1 className="text-5xl font-bold text-black dark:text-white">
+            CLIP-LLM Zero-Shot Image Classification
           </h1>
         </div>
-        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
+        <p className="hidden text-xl text-black dark:text-white max-w-3xl mx-auto leading-relaxed">
           Advanced Zero-Shot Image Classification with Domain Adaptation and LLM-Enhanced Reasoning
         </p>
       </div>
 
       {/* Features Grid */}
       <div className="grid md:grid-cols-2 gap-6">
-        <Card className="shadow-md hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-200 dark:hover:border-blue-800">
+        <Card className="shadow-md hover:shadow-xl transition-all duration-300 border-2 hover:border-white dark:hover:border-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
-              <Upload className="h-6 w-6 text-blue-600" />
+              <Upload className="h-6 w-6 text-black dark:text-white" />
               Upload & Classify
             </CardTitle>
             <CardDescription className="text-base">
@@ -34,21 +31,21 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2 mb-6">
+            <ul className="text-sm text-black dark:text-white space-y-2 mb-6">
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full"></span>
                 CLIP-based visual embeddings
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full"></span>
                 Custom class labels
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full"></span>
                 Domain detection
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full"></span>
                 Auto-tuned predictions
               </li>
             </ul>
@@ -60,32 +57,32 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-md hover:shadow-xl transition-all duration-300 border-2 hover:border-purple-200 dark:hover:border-purple-800">
+        <Card className="shadow-md hover:shadow-xl transition-all duration-300 border-2 hover:border-white dark:hover:border-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
-              <Brain className="h-6 w-6 text-purple-600" />
+              <Brain className="h-6 w-6 text-black dark:text-white" />
               LLM Reasoning
             </CardTitle>
             <CardDescription className="text-base">
-              Get detailed explanations for predictions with AI-generated reasoning
+              Get detailed explanations for predictions with generated reasoning
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2 mb-6">
+            <ul className="text-sm text-black dark:text-white space-y-2 mb-6">
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full"></span>
                 Contextual explanations
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full"></span>
                 Domain-aware insights
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full"></span>
                 Confidence analysis
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                <span className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full"></span>
                 Visual feature descriptions
               </li>
             </ul>

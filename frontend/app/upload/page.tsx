@@ -159,6 +159,7 @@ export default function UploadPage() {
         ...result,
         label: result.prediction || result.label || 'Unknown',
         confidence: result.confidence_score || result.confidence || 0,
+        confidence_score: result.confidence_score || result.confidence || 0,
         candidates: result.top_matches?.map(m => ({ label: m.label, score: m.score })) || result.candidates || []
       }
       
@@ -265,9 +266,9 @@ export default function UploadPage() {
   }
 
   const getConfidenceBadge = (confidence: number) => {
-    if (confidence >= 0.7) return { label: 'High', color: 'bg-green-500' }
-    if (confidence >= 0.4) return { label: 'Medium', color: 'bg-yellow-500' }
-    return { label: 'Low', color: 'bg-red-500' }
+    if (confidence >= 0.7) return { label: 'High', color: 'bg-white' }
+    if (confidence >= 0.4) return { label: 'Medium', color: 'bg-white' }
+    return { label: 'Low', color: 'bg-black' }
   }
 
   return (
@@ -276,18 +277,18 @@ export default function UploadPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/home">
-            <Button variant="outline" size="sm" className="rounded-lg">
+            <Button variant="outline" size="sm" className="rounded-lg border-black dark:border-white bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Home
             </Button>
           </Link>
           <div className="flex items-center gap-3">
-            <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-xl">
-              <Upload className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="bg-white dark:bg-white p-2 rounded-xl">
+              <Upload className="h-6 w-6 text-black dark:text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Upload & Classify</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Zero-shot image classification with CLIP & LLM</p>
+              <h1 className="text-3xl font-bold text-black dark:text-white">Upload & Classify</h1>
+              <p className="text-sm text-black dark:text-white">Zero-shot image classification with CLIP & LLM</p>
             </div>
           </div>
         </div>
@@ -297,7 +298,7 @@ export default function UploadPage() {
       <div className="space-y-4">
         <div className={`grid gap-4 items-stretch ${showProgress ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
           {/* Combined Upload and Classification Card */}
-          <Card className="h-3/4 shadow-md border-2 border-purple-300 dark:border-purple-700">
+          <Card className="h-3/4 shadow-md border-2 border-black dark:border-white">
             <CardContent className="h-full py-6 flex flex-col justify-center items-center">
                 {!selectedImage ? (
                 // Before upload - Full card upload area
@@ -313,7 +314,7 @@ export default function UploadPage() {
                 // After upload - Split into upload area and button
                 <div className="w-full h-full flex flex-col lg:flex-row items-center justify-center gap-8 px-4">
                   {/* Upload Area */}
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                   <ImageUploadCard 
                     onImageUpload={handleImageSelect}
                     onClear={handleClearImage}
@@ -327,7 +328,7 @@ export default function UploadPage() {
                   <Button
                     onClick={handleStartClassification}
                     disabled={isPredicting}
-                    className="w-64 h-14 text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 shadow-lg hover:shadow-xl transition-all"
+                    className="w-64 h-14 text-base font-semibold bg-black dark:bg-white hover:bg-black dark:hover:bg-white text-white dark:text-black disabled:opacity-50 shadow-lg hover:shadow-xl transition-all"
                   >
                     {isPredicting ? (
                     <>
@@ -359,10 +360,10 @@ export default function UploadPage() {
 
         {/* Error Display */}
         {error && (
-          <Card className="shadow-md border-red-200 dark:border-red-800">
+          <Card className="shadow-md border-black dark:border-white">
             <CardContent className="pt-6">
-              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <p className="text-sm text-red-800 dark:text-red-400 flex items-center gap-2">
+              <div className="bg-black dark:bg-white/20 border border-black dark:border-white rounded-lg p-4">
+                <p className="text-sm text-black dark:text-white flex items-center gap-2">
                   <X className="h-4 w-4" />
                   {error}
                 </p>
@@ -378,7 +379,7 @@ export default function UploadPage() {
             <Card className="shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-yellow-500" />
+                  <Sparkles className="h-5 w-5 text-black dark:text-white" />
                   Classification Results
                 </CardTitle>
               </CardHeader>
@@ -387,11 +388,11 @@ export default function UploadPage() {
                   {/* Top Row - Image Preview (Full Width) - Hidden */}
                   {imagePreview && (
                     <div className="w-full hidden">
-                      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-black dark:text-white mb-3 flex items-center gap-2">
                         <ImageIcon className="h-4 w-4" />
                         Classified Image
                       </h3>
-                      <div className="relative rounded-xl overflow-hidden border-2 border-gray-300 dark:border-gray-600 shadow-lg bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-900 dark:to-gray-800">
+                      <div className="relative rounded-xl overflow-hidden border-2 border-black dark:border-white shadow-lg bg-white dark:bg-black">
                         <img
                           src={imagePreview}
                           alt="Uploaded"
@@ -406,17 +407,17 @@ export default function UploadPage() {
                     {/* Left Column - Top Prediction & Domain */}
                     <div className="lg:col-span-1 space-y-4">
                       {/* Top Prediction */}
-                      <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl p-5 border-2 border-blue-200 dark:border-blue-800 shadow-md">
+                      <div className="bg-white dark:bg-black rounded-xl p-5 border-2 border-black dark:border-white shadow-md">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">
+                            <p className="text-xs font-semibold text-black dark:text-white mb-1 uppercase tracking-wide">
                               Top Prediction
                             </p>
-                            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 capitalize">
+                            <h3 className="text-2xl font-bold text-black dark:text-white capitalize">
                               {results.prediction}
                             </h3>
                           </div>
-                          <Badge className={`${getConfidenceBadge(results.confidence_score ?? 0).color} text-white px-3 py-1 text-xs`}>
+                          <Badge className={`${getConfidenceBadge(results.confidence_score ?? 0).color} text-white px-3 py-1 text-xs hidden`}>
                             {getConfidenceBadge(results.confidence_score ?? 0).label}
                           </Badge>
                         </div>
@@ -429,7 +430,7 @@ export default function UploadPage() {
                           </div>
                           <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-3">
                             <div
-                              className={`h-3 rounded-full transition-all duration-300 ${getConfidenceBadge(results.confidence_score ?? 0).color}`}
+                              className="h-3 rounded-full transition-all duration-300 bg-black dark:bg-white"
                               style={{ width: `${(results.confidence_score ?? 0) * 100}%` }}
                             ></div>
                           </div>
@@ -437,15 +438,15 @@ export default function UploadPage() {
                       </div>
 
                       {/* Domain Info */}
-                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-xl p-4 border-2 border-amber-200 dark:border-amber-800 space-y-3">
+                      <div className="bg-white dark:bg-black rounded-xl p-4 border-2 border-gray-300 dark:border-gray-700 space-y-3">
                         <div>
                           <div className="flex items-center gap-2 mb-2">
-                            <ImageIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            <ImageIcon className="h-4 w-4 text-gray-900 dark:text-gray-100" />
                             <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                               Image Domain
                             </span>
                           </div>
-                          <Badge className="capitalize bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                          <Badge className="capitalize bg-gray-200 dark:bg-gray-800/30 text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-600">
                             {results.domain}
                           </Badge>
                         </div>
@@ -457,7 +458,7 @@ export default function UploadPage() {
                       {/* Top Candidates */}
                       <div className="space-y-3">
                         <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
-                          <Tags className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                          <Tags className="h-4 w-4 text-gray-900 dark:text-gray-100" />
                           Top Predictions
                         </h4>
                         <div className="space-y-2">
@@ -468,7 +469,7 @@ export default function UploadPage() {
                             return (
                               <div
                                 key={idx}
-                                className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+                                className="flex items-center justify-between p-3 bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                               >
                                 <div className="flex items-center gap-2 flex-1">
                                   <span className="text-xs font-bold text-gray-400 dark:text-gray-500 w-6">
@@ -480,11 +481,11 @@ export default function UploadPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <div className="text-right">
-                                    <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                                    <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
                                       {confidencePercent}%
                                     </div>
                                   </div>
-                                  <Badge className={`${badge.color} text-white px-2 py-0.5 text-xs`}>
+                                  <Badge className={`${badge.color} text-white px-2 py-0.5 text-xs hidden`}>
                                     {badge.label}
                                   </Badge>
                                 </div>
@@ -498,16 +499,16 @@ export default function UploadPage() {
                       {results.objects && results.objects.length > 0 && (
                         <div className="space-y-3">
                           <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
-                            <Tags className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            <Tags className="h-4 w-4 text-gray-900 dark:text-gray-100" />
                             Detected Objects
                           </h4>
                           <div className="flex flex-wrap gap-2">
                             {results.objects.map((obj, idx) => (
                               <Badge 
                                 key={idx}
-                                className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-900/50 capitalize"
+                                className="bg-gray-200 dark:bg-gray-800/30 text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700/50 capitalize"
                               >
-                                {obj.name} {obj.score > 0 && `(${(obj.score * 100).toFixed(0)}%)`}
+                                {obj.name}
                               </Badge>
                             ))}
                           </div>
@@ -520,21 +521,21 @@ export default function UploadPage() {
                       {/* Caption */}
                       <div className="space-y-2">
                         <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
-                          <ImageIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <ImageIcon className="h-4 w-4 text-gray-900 dark:text-gray-100" />
                           Caption
                         </h4>
-                        <p className="text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-950/20 px-4 py-3 rounded-lg text-sm leading-relaxed italic border border-blue-200 dark:border-blue-800">
-                          "{results.caption}"
+                        <p className="text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900/20 px-4 py-3 rounded-lg text-sm leading-relaxed italic border border-gray-300 dark:border-gray-700">
+                          &quot;{results.caption}&quot;
                         </p>
                       </div>
 
                       {/* LLM Explanation - Hidden */}
                       <div className="space-y-2 hidden">
                         <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
-                          <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                          <Brain className="h-4 w-4 text-gray-700 dark:text-gray-300" />
                           LLM Reasoning
                         </h4>
-                        <p className="text-gray-700 dark:text-gray-300 bg-purple-50 dark:bg-purple-950/20 px-4 py-3 rounded-lg text-sm leading-relaxed border border-purple-200 dark:border-purple-800">
+                        <p className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/20 px-4 py-3 rounded-lg text-sm leading-relaxed border border-gray-300 dark:border-gray-700">
                           {results.explanation}
                         </p>
                       </div>
@@ -543,10 +544,10 @@ export default function UploadPage() {
                       {results.explanation && (
                         <div className="space-y-2">
                           <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
-                            <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                            <Brain className="h-4 w-4 text-gray-700 dark:text-gray-300" />
                             Explanation
                           </h4>
-                          <p className="text-gray-700 dark:text-gray-300 bg-purple-50 dark:bg-purple-950/20 px-4 py-3 rounded-lg text-sm leading-relaxed border border-purple-200 dark:border-purple-800">
+                          <p className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/20 px-4 py-3 rounded-lg text-sm leading-relaxed border border-gray-300 dark:border-gray-700">
                             {results.explanation}
                           </p>
                         </div>
@@ -556,19 +557,19 @@ export default function UploadPage() {
                       {results.validation && (
                         <div className="space-y-3 hidden">
                           <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
-                            <Sparkles className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                            <Sparkles className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                             Validation
                           </h4>
                           <div className="grid grid-cols-2 gap-2">
-                            <div className="bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-950/30 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
-                              <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">Domain Match</p>
-                              <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                            <div className="bg-white dark:bg-black p-3 rounded-lg border border-gray-300 dark:border-gray-700">
+                              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Domain Match</p>
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                                 {(results.validation.domain_similarity * 100).toFixed(1)}%
                               </p>
                             </div>
-                            <div className="bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-950/30 p-3 rounded-lg border border-purple-200 dark:border-purple-800">
-                              <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1">Caption Match</p>
-                              <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                            <div className="bg-white dark:bg-black p-3 rounded-lg border border-gray-300 dark:border-gray-700">
+                              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Caption Match</p>
+                              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                                 {(results.validation.caption_similarity * 100).toFixed(1)}%
                               </p>
                             </div>

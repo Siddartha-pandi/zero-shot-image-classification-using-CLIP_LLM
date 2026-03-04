@@ -1,14 +1,35 @@
 # app/domain_service.py
 from typing import Literal, Optional
 
-Domain = Literal["natural", "medical", "anime", "sketch", "satellite", "unknown"]
+Domain = Literal["natural", "medical", "industrial", "anime", "sketch", "satellite", "unknown"]
 
 KEYWORDS = {
     "medical": [
-        "xray", "x-ray", "ct", "mri", "scan", "radiograph", "chest", "lung", "lungs",
-        "rib", "ribs", "opacity", "pulmonary", "cardiac", "heart", "bone", "fracture",
+        # Imaging modalities
+        "xray", "x-ray", "ct", "mri", "scan", "radiograph", "ultrasound",
+        # Anatomical regions
+        "chest", "lung", "lungs", "brain", "heart", "abdomen", "retina", "retinal",
+        "rib", "ribs", "spine", "vertebra", "organ", "tissue",
+        # Medical findings
+        "opacity", "pulmonary", "cardiac", "bone", "fracture", "lesion", "tumor",
+        "pneumonia", "nodule", "mass", "edema",
+        # Medical terminology
         "medical", "clinical", "diagnostic", "anatomy", "radiology", "imaging",
-        "patient", "thorax", "abdomen", "skull", "spine", "vertebra"
+        "patient", "thorax", "skull", "fundus", "optic disc",
+        # Specific image types
+        "chest x-ray", "brain mri", "ct scan", "skin lesion", "dermatological",
+        "fundus photograph", "melanoma", "retinopathy"
+    ],
+    "industrial": [
+        # Defect types
+        "crack", "fracture", "corrosion", "rust", "scratch", "wear", "defect",
+        # Materials
+        "metal", "steel", "surface", "metallic", "industrial",
+        # Inspection terms
+        "inspection", "quality control", "damage", "flaw", "deterioration",
+        # Specific defects
+        "surface crack", "oxidation", "abrasion", "structural failure",
+        "surface wear", "manufacturing defect"
     ],
     "anime": ["anime", "manga", "cartoon", "illustration", "character", "animated"],
     "satellite": ["satellite", "aerial", "top view", "remote sensing", "overhead", "bird's eye"],
@@ -35,10 +56,20 @@ def infer_domain_from_caption(caption: str) -> Domain:
     medical_indicators = [
         "chest", "lung", "lungs", "xray", "x-ray", "rib", "ribs",
         "medical", "radiograph", "scan", "ct", "mri", "opacity",
-        "pulmonary", "cardiac", "bone", "anatomy", "radiology"
+        "pulmonary", "cardiac", "bone", "anatomy", "radiology",
+        "brain", "retina", "retinal", "fundus", "lesion", "tumor"
     ]
     if any(word in c for word in medical_indicators):
         return "medical"
+    
+    # Check for industrial inspection indicators
+    industrial_indicators = [
+        "crack", "fracture", "corrosion", "rust", "scratch", "defect",
+        "metal", "surface", "industrial", "damage", "wear", "oxidation",
+        "abrasion", "structural", "manufacturing"
+    ]
+    if any(word in c for word in industrial_indicators):
+        return "industrial"
     
     # Check for anime/cartoon indicators  
     anime_indicators = ["anime", "manga", "cartoon", "animated", "character"]

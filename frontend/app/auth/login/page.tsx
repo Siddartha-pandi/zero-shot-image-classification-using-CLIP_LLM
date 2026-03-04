@@ -3,19 +3,14 @@
 import { signIn } from "@/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Brain, Sparkles } from "lucide-react"
+import { Sparkles } from "lucide-react"
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-2xl border-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
           <CardHeader className="space-y-3">
-            <div className="flex items-center justify-center">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-lg">
-                <Brain className="h-8 w-8 text-white" />
-              </div>
-            </div>
             <CardTitle className="text-center text-2xl">Sign In</CardTitle>
             <CardDescription className="text-center">
               Continue to Zero-Shot Image Classification
@@ -74,8 +69,8 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30">
-                <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/30">
+                <Sparkles className="h-4 w-4 text-gray-900 dark:text-gray-100 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">First time?</p>
                   <p>Just sign in with Google and your account will be created automatically</p>

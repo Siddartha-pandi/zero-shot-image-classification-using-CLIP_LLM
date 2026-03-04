@@ -56,37 +56,37 @@ export default function MetricsChart({
     {
       name: 'Top-1 Acc',
       value: metrics.top1_accuracy * 100,
-      color: '#3b82f6'
+      color: '#000000'
     },
     {
       name: 'Top-5 Acc',
       value: metrics.top5_accuracy * 100,
-      color: '#10b981'
+      color: '#1a1a1a'
     },
     {
       name: 'Precision',
       value: metrics.precision_weighted * 100,
-      color: '#8b5cf6'
+      color: '#333333'
     },
     {
       name: 'Recall',
       value: metrics.recall_weighted * 100,
-      color: '#f59e0b'
+      color: '#4d4d4d'
     },
     {
       name: 'F1 (Weighted)',
       value: metrics.f1_weighted * 100,
-      color: '#ef4444'
+      color: '#666666'
     },
     {
       name: 'F1 (Macro)',
       value: metrics.f1_macro * 100,
-      color: '#ec4899'
+      color: '#808080'
     },
     {
       name: 'mAP',
       value: metrics.map * 100,
-      color: '#06b6d4'
+      color: '#999999'
     }
   ]
 
@@ -208,7 +208,7 @@ export default function MetricsChart({
                       return null
                     }}
                   />
-                  <Bar dataKey="accuracy" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="accuracy" fill="#333333" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -229,7 +229,7 @@ export default function MetricsChart({
             <div className="grid md:grid-cols-2 gap-6">
               {/* Top 5 Classes */}
               <div>
-                <h4 className="font-medium mb-3 text-green-600">Top 5 Classes (by F1)</h4>
+                <h4 className="font-medium mb-3 text-black dark:text-white">Top 5 Classes (by F1)</h4>
                 <div className="space-y-2">
                   {Object.entries(metrics.per_class_metrics)
                     .sort(([, a], [, b]) => b.f1 - a.f1)
@@ -238,11 +238,11 @@ export default function MetricsChart({
                       <div key={idx} className="space-y-1">
                         <div className="flex justify-between text-sm">
                           <span className="font-medium truncate">{className}</span>
-                          <span className="text-green-600">{(classMetrics.f1 * 100).toFixed(1)}%</span>
+                          <span className="text-black dark:text-white">{(classMetrics.f1 * 100).toFixed(1)}%</span>
                         </div>
                         <div className="w-full bg-muted rounded-full h-2">
                           <div 
-                            className="h-2 rounded-full bg-green-500"
+                            className="h-2 rounded-full bg-black dark:bg-white"
                             style={{ width: `${classMetrics.f1 * 100}%` }}
                           />
                         </div>
@@ -258,7 +258,7 @@ export default function MetricsChart({
 
               {/* Bottom 5 Classes */}
               <div>
-                <h4 className="font-medium mb-3 text-red-600">Bottom 5 Classes (by F1)</h4>
+                <h4 className="font-medium mb-3 text-black dark:text-white">Bottom 5 Classes (by F1)</h4>
                 <div className="space-y-2">
                   {Object.entries(metrics.per_class_metrics)
                     .sort(([, a], [, b]) => a.f1 - b.f1)
@@ -267,11 +267,11 @@ export default function MetricsChart({
                       <div key={idx} className="space-y-1">
                         <div className="flex justify-between text-sm">
                           <span className="font-medium truncate">{className}</span>
-                          <span className="text-red-600">{(classMetrics.f1 * 100).toFixed(1)}%</span>
+                          <span className="text-black dark:text-white">{(classMetrics.f1 * 100).toFixed(1)}%</span>
                         </div>
                         <div className="w-full bg-muted rounded-full h-2">
                           <div 
-                            className="h-2 rounded-full bg-red-500"
+                            className="h-2 rounded-full bg-white"
                             style={{ width: `${classMetrics.f1 * 100}%` }}
                           />
                         </div>
@@ -302,9 +302,9 @@ export default function MetricsChart({
             {additionalMetrics.map((metric, index) => {
               const percentage = metric.value
               const getColor = (value: number) => {
-                if (value >= 80) return 'bg-green-500'
-                if (value >= 60) return 'bg-yellow-500'
-                return 'bg-red-500'
+                if (value >= 80) return 'bg-black dark:bg-white'
+                if (value >= 60) return 'bg-black dark:bg-white'
+                return 'bg-black dark:bg-white'
               }
 
               return (
@@ -339,28 +339,28 @@ export default function MetricsChart({
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-black dark:text-white">
                 {(metrics.top1_accuracy * 100).toFixed(1)}%
               </div>
               <div className="text-sm text-muted-foreground">Top-1 Accuracy</div>
             </div>
             
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-black dark:text-white">
                 {(metrics.f1_weighted * 100).toFixed(1)}%
               </div>
               <div className="text-sm text-muted-foreground">F1-Score</div>
             </div>
             
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-2xl font-bold text-black dark:text-white">
                 {(metrics.map * 100).toFixed(1)}%
               </div>
               <div className="text-sm text-muted-foreground">mAP</div>
             </div>
             
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold text-black dark:text-white">
                 {((1 - metrics.cross_domain_drop) * 100).toFixed(1)}%
               </div>
               <div className="text-sm text-muted-foreground">Domain Robustness</div>
