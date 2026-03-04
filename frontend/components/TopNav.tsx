@@ -2,7 +2,7 @@
 
 import { ThemeToggle } from "@/components/theme-toggle"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Brain, User, LogOut } from "lucide-react"
+import { User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react"
 import { useSession } from "next-auth/react"
@@ -17,16 +17,14 @@ export function TopNav() {
   const { data: session } = useSession()
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b border-black dark:border-white bg-white dark:bg-black">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Left side - Sidebar trigger and Logo */}
         <div className="flex items-center gap-4">
           <SidebarTrigger />
-          <div className="flex items-center gap-2">
-            <Brain className="h-6 w-6 text-primary" />
-            <div className="hidden sm:block">
-              <h1 className="font-bold text-lg">CLIP-LLM</h1>
-            </div>
+          <div className="hidden sm:block">
+            <h1 className="font-bold text-lg text-black dark:text-white">CLIP-LLM</h1>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Zero-Shot Image Classification</p>
           </div>
         </div>
 

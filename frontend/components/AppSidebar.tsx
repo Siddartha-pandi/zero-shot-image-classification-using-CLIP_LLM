@@ -1,6 +1,6 @@
 "use client"
 
-import { Brain, Upload, Home } from "lucide-react"
+import { Upload, Home } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -35,11 +35,10 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-2 px-4 py-2">
-          <Brain className="h-6 w-6 text-primary" />
+        <div className="px-4 py-2">
           <div>
             <h1 className="font-bold text-lg">CLIP-LLM</h1>
-            <p className="text-xs text-muted-foreground">Zero-Shot Classification</p>
+            <p className="text-xs text-muted-foreground">Zero-Shot Image Classification</p>
           </div>
         </div>
       </SidebarHeader>

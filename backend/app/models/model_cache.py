@@ -38,16 +38,22 @@ def clear_gpu_cache():
 
 def log_memory_usage():
     """Log current memory usage"""
-    if DEVICE == "cuda":
-        allocated = torch.cuda.memory_allocated() / 1024 / 1024 / 1024
-        reserved = torch.cuda.memory_reserved() / 1024 / 1024 / 1024
-        logger.info(f"GPU Memory - Allocated: {allocated:.2f}GB, Reserved: {reserved:.2f}GB")
-    else:
-        import psutil
-        process = psutil.Process()
-        mem_info = process.memory_info()
-        rss_gb = mem_info.rss / 1024 / 1024 / 1024
-        logger.info(f"CPU Memory - Used: {rss_gb:.2f}GB")
+    try:
+        if DEVICE == "cuda":
+            allocated = torch.cuda.memory_allocated() / 1024 / 1024 / 1024
+            reserved = torch.cuda.memory_reserved() / 1024 / 1024 / 1024
+            logger.info(f"GPU Memory - Allocated: {allocated:.2f}GB, Reserved: {reserved:.2f}GB")
+        else:
+            try:
+                import psutil
+                process = psutil.Process()
+                mem_info = process.memory_info()
+                rss_gb = mem_info.rss / 1024 / 1024 / 1024
+                logger.info(f"CPU Memory - Used: {rss_gb:.2f}GB")
+            except ImportError:
+                logger.debug("psutil not available for memory logging")
+    except Exception as e:
+        logger.debug(f"Memory logging failed: {e}")
 
 
 def cached_load(cache_key: str, load_fn, *args, **kwargs):

@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Brain, TrendingUp, Layers, Download, Sparkles } from "lucide-react"
+import { TrendingUp, Layers, Download, Sparkles } from "lucide-react"
 import type { Narrative } from "@/types"
 
 interface ResultsCardProps {
@@ -45,7 +45,6 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
       <Card className="h-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
             Classification Results
           </CardTitle>
           <CardDescription>
@@ -54,7 +53,6 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
         </CardHeader>
         <CardContent className="flex items-center justify-center h-64 text-muted-foreground">
           <div className="text-center">
-            <Brain className="h-16 w-16 mx-auto mb-4 opacity-20" />
             <p>No results yet</p>
           </div>
         </CardContent>
@@ -116,7 +114,6 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-xl">
-            <Brain className="h-5 w-5 text-gray-800 dark:text-gray-200" />
             Classification Results
           </CardTitle>
           <Button 
@@ -140,12 +137,12 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
             <div className="flex items-center gap-2">
               <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
-                <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">Image Domain</span>
-                <p className="text-lg font-bold text-blue-900 dark:text-blue-100 capitalize">
+                <span className="text-xs font-semibold text-black dark:text-white uppercase tracking-wide">Image Domain</span>
+                <p className="text-lg font-bold text-black dark:text-white capitalize">
                   {results.domain_info.domain.replace(/_/g, ' ')}
                 </p>
               </div>
-              <Badge variant="outline" className="ml-auto bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">
+              <Badge variant="outline" className="ml-auto bg-gray-200 dark:bg-gray-800 text-black dark:text-white border-black dark:border-white">
                 {Math.min(100, (results.domain_info.confidence * 100)).toFixed(0)}% match
               </Badge>
             </div>
@@ -153,16 +150,16 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
         )}
 
         {/* Top Prediction Highlight */}
-        <div className="bg-linear-to-br from-blue-50 to-purple-50 dark:from-blue-950/40 dark:to-purple-950/40 rounded-xl p-5 border-2 border-blue-300 dark:border-blue-700 shadow-sm">
+        <div className="bg-gray-50 dark:bg-gray-950 rounded-xl p-5 border-2 border-black dark:border-white shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            <span className="text-sm font-medium text-black dark:text-white">
               Top Prediction
             </span>
-            <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <TrendingUp className="h-5 w-5 text-black dark:text-white" />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold capitalize text-blue-900 dark:text-blue-100">{topLabel}</span>
-            <Badge className="text-lg px-4 py-1.5 bg-blue-600 dark:bg-blue-500 text-white dark:text-white hover:bg-blue-700 dark:hover:bg-blue-600">
+            <span className="text-2xl font-bold capitalize text-black dark:text-white">{topLabel}</span>
+            <Badge className="text-lg px-4 py-1.5 bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200">
               {Math.min(100, (topScore * 100)).toFixed(1)}%
             </Badge>
           </div>
@@ -170,7 +167,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
 
         {/* All Predictions with Gradient Bars */}
         <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+          <h4 className="text-sm font-semibold text-black dark:text-white flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             All Predictions
           </h4>
@@ -182,7 +179,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
                   {Math.min(100, (score * 100)).toFixed(1)}%
                 </span>
               </div>
-              <div className="h-3 bg-blue-100 dark:bg-blue-900/30 rounded-full overflow-hidden shadow-inner">
+              <div className=\"h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden shadow-inner\">
                 <div
                   className="h-full gradient-bar transition-all duration-700 ease-out rounded-full"
                   style={{ width: `${Math.min(100, score * 100)}%` }}

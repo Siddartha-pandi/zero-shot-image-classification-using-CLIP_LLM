@@ -3,31 +3,22 @@
 import { signIn } from "@/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Brain, Sparkles } from "lucide-react"
+import { Sparkles } from "lucide-react"
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-white via-blue-50 to-purple-50 dark:from-gray-950 dark:via-blue-950/40 dark:to-purple-950/40 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-2xl border-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
+        <Card className="shadow-lg border-2 border-black dark:border-white bg-white dark:bg-black">
           <CardHeader className="space-y-3">
-            <div className="flex items-center justify-center">
-              <div className="bg-blue-600 dark:bg-blue-500 p-3 rounded-lg">
-                <Brain className="h-8 w-8 text-white dark:text-white" />
-              </div>
-            </div>
-            <CardTitle className="text-center text-2xl">Sign In</CardTitle>
-            <CardDescription className="text-center">
+            <CardTitle className="text-center text-2xl text-black dark:text-white">Sign In</CardTitle>
+            <CardDescription className="text-center text-gray-700 dark:text-gray-300">
               Continue to Zero-Shot Image Classification
             </CardDescription>
           </CardHeader>
           
           <CardContent className="space-y-6">
             <div className="space-y-3">
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                Secure access powered by Google authentication
-              </p>
-              
               <form
                 action={async () => {
                   "use server"
@@ -37,7 +28,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full bg-blue-600 dark:bg-blue-500 text-white dark:text-white border-2 border-blue-600 dark:border-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all"
+                  className="w-full bg-black dark:bg-white text-white dark:text-black border-2 border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 transition-all font-semibold"
                 >
                   <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                     <path

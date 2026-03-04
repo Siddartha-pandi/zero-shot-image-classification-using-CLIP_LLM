@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { 
-  Brain, 
   AlertTriangle, 
   CheckCircle, 
   Info, 
@@ -36,7 +35,6 @@ export default function EnhancedResultsCard({
       <Card className="h-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
             Enhanced Classification Results
           </CardTitle>
           <CardDescription>
@@ -45,7 +43,6 @@ export default function EnhancedResultsCard({
         </CardHeader>
         <CardContent className="flex items-center justify-center h-64 text-muted-foreground">
           <div className="text-center">
-            <Brain className="h-16 w-16 mx-auto mb-4 opacity-20" />
             <p>No results yet</p>
           </div>
         </CardContent>
@@ -97,7 +94,6 @@ export default function EnhancedResultsCard({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5" />
               Enhanced Classification Results
             </CardTitle>
             <CardDescription>

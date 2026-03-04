@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Upload, Brain, ArrowLeft, Sparkles, Image as ImageIcon, Tags, Loader2, X } from "lucide-react"
+import { Upload, ArrowLeft, Sparkles, Image as ImageIcon, Tags, Loader2, X } from "lucide-react"
 import Link from "next/link"
 import type { ClassificationResult } from "@/types"
 import { apiClient } from "@/lib/api"
@@ -265,9 +265,9 @@ export default function UploadPage() {
   }
 
   const getConfidenceBadge = (confidence: number) => {
-    if (confidence >= 0.7) return { label: 'High', color: 'bg-green-500 dark:bg-green-600' }
-    if (confidence >= 0.4) return { label: 'Medium', color: 'bg-yellow-500 dark:bg-yellow-600' }
-    return { label: 'Low', color: 'bg-red-500 dark:bg-red-600' }
+    if (confidence >= 0.7) return { label: 'High', color: 'bg-gray-800 dark:bg-gray-200 text-white dark:text-black' }
+    if (confidence >= 0.4) return { label: 'Medium', color: 'bg-gray-600 dark:bg-gray-400 text-white dark:text-black' }
+    return { label: 'Low', color: 'bg-gray-400 dark:bg-gray-600 text-white dark:text-black' }
   }
 
   return (
@@ -282,12 +282,12 @@ export default function UploadPage() {
             </Button>
           </Link>
           <div className="flex items-center gap-3">
-            <div className="bg-blue-200 dark:bg-blue-900/50 p-2 rounded-xl">
-              <Upload className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="bg-gray-200 dark:bg-gray-800 p-2 rounded-xl">
+              <Upload className="h-6 w-6 text-black dark:text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">Upload & Classify</h1>
-              <p className="text-sm text-blue-700 dark:text-blue-300">Zero-shot image classification with CLIP & LLM</p>
+              <h1 className="text-3xl font-bold text-black dark:text-white">Upload & Classify</h1>
+              <p className="text-sm text-black dark:text-white">Zero-shot image classification with CLIP & LLM</p>
             </div>
           </div>
         </div>
@@ -297,7 +297,7 @@ export default function UploadPage() {
       <div className="space-y-4">
         <div className={`grid gap-4 items-stretch ${showProgress ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
           {/* Combined Upload and Classification Card */}
-          <Card className="h-3/4 shadow-md border-2 border-blue-300 dark:border-blue-700">
+          <Card className="h-3/4 shadow-md border-2 border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950">
             <CardContent className="h-full py-6 flex flex-col justify-center items-center">
                 {!selectedImage ? (
                 // Before upload - Full card upload area
@@ -327,7 +327,7 @@ export default function UploadPage() {
                   <Button
                     onClick={handleStartClassification}
                     disabled={isPredicting}
-                    className="w-64 h-14 text-base font-semibold bg-blue-600 dark:bg-blue-500 text-white dark:text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 shadow-lg hover:shadow-xl transition-all"
+                    className="w-64 h-14 text-base font-semibold bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 shadow-lg hover:shadow-xl transition-all"
                   >
                     {isPredicting ? (
                     <>
@@ -359,10 +359,10 @@ export default function UploadPage() {
 
         {/* Error Display */}
         {error && (
-          <Card className="shadow-md border-red-300 dark:border-red-700">
+          <Card className="shadow-md border-2 border-gray-300 dark:border-gray-700">
             <CardContent className="pt-6">
-              <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-4">
-                <p className="text-sm text-red-800 dark:text-red-300 flex items-center gap-2">
+              <div className="bg-gray-100 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-700 rounded-lg p-4">
+                <p className="text-sm text-gray-900 dark:text-gray-100 flex items-center gap-2">
                   <X className="h-4 w-4" />
                   {error}
                 </p>
@@ -378,7 +378,7 @@ export default function UploadPage() {
             <Card className="shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <Sparkles className="h-5 w-5 text-black dark:text-white" />
                   Classification Results
                 </CardTitle>
               </CardHeader>
@@ -391,7 +391,7 @@ export default function UploadPage() {
                         <ImageIcon className="h-4 w-4" />
                         Classified Image
                       </h3>
-                      <div className="relative rounded-xl overflow-hidden border-2 border-blue-300 dark:border-blue-700 shadow-lg bg-linear-to-br from-blue-50 to-blue-50/50 dark:from-blue-950/30 dark:to-blue-900/30">
+                      <div className="relative rounded-xl overflow-hidden border-2 border-gray-300 dark:border-gray-700 shadow-lg bg-gray-100 dark:bg-gray-900/30">
                         <img
                           src={imagePreview}
                           alt="Uploaded"
@@ -406,7 +406,7 @@ export default function UploadPage() {
                     {/* Left Column - Top Prediction & Domain */}
                     <div className="lg:col-span-1 space-y-4">
                       {/* Top Prediction */}
-                      <div className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl p-5 border-2 border-blue-300 dark:border-blue-700 shadow-md">
+                      <div className="bg-gray-100 dark:bg-gray-900/30 rounded-xl p-5 border-2 border-gray-300 dark:border-gray-700 shadow-md">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wide">
@@ -427,7 +427,7 @@ export default function UploadPage() {
                               {((results.confidence_score ?? 0) * 100).toFixed(1)}%
                             </span>
                           </div>
-                          <div className="w-full bg-blue-200 dark:bg-blue-900/40 rounded-full h-3">
+                          <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-3">
                             <div
                               className={`h-3 rounded-full transition-all duration-300 ${getConfidenceBadge(results.confidence_score ?? 0).color}`}
                               style={{ width: `${(results.confidence_score ?? 0) * 100}%` }}
@@ -437,7 +437,7 @@ export default function UploadPage() {
                       </div>
 
                       {/* Domain Info */}
-                      <div className="bg-linear-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 rounded-xl p-4 border-2 border-purple-300 dark:border-purple-700 space-y-3">
+                      <div className="bg-gray-100 dark:bg-gray-900/30 rounded-xl p-4 border-2 border-gray-300 dark:border-gray-700 space-y-3">
                         <div>
                           <div className="flex items-center gap-2 mb-2">
                             <ImageIcon className="h-4 w-4 text-gray-700 dark:text-gray-300" />
@@ -445,7 +445,7 @@ export default function UploadPage() {
                               Image Domain
                             </span>
                           </div>
-                          <Badge className="capitalize bg-purple-300 dark:bg-purple-700 text-purple-900 dark:text-purple-100 border border-purple-400 dark:border-purple-600">
+                          <Badge className="capitalize bg-gray-800 dark:bg-gray-200 text-white dark:text-black border border-gray-700 dark:border-gray-300">
                             {results.domain}
                           </Badge>
                         </div>
@@ -468,7 +468,7 @@ export default function UploadPage() {
                             return (
                               <div
                                 key={idx}
-                                className="flex items-center justify-between p-3 bg-linear-to-r from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/40 rounded-lg border border-blue-300 dark:border-blue-700 hover:shadow-md transition-shadow"
+                                className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-900/40 rounded-lg border border-gray-300 dark:border-gray-700 hover:shadow-md transition-shadow"
                               >
                                 <div className="flex items-center gap-2 flex-1">
                                   <span className="text-xs font-bold text-gray-400 dark:text-gray-500 w-6">
@@ -505,7 +505,7 @@ export default function UploadPage() {
                             {results.objects.map((obj, idx) => (
                               <Badge 
                                 key={idx}
-                                className="bg-blue-200 dark:bg-blue-800 text-blue-900 dark:text-blue-100 border border-blue-400 dark:border-blue-600 hover:bg-blue-300 dark:hover:bg-blue-700 capitalize"
+                                className="bg-gray-700 dark:bg-gray-300 text-white dark:text-black border border-gray-600 dark:border-gray-400 hover:bg-gray-600 dark:hover:bg-gray-200 capitalize"
                               >
                                 {obj.name} {obj.score > 0 && `(${(obj.score * 100).toFixed(0)}%)`}
                               </Badge>
@@ -520,10 +520,10 @@ export default function UploadPage() {
                       {/* Caption */}
                       <div className="space-y-2">
                         <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
-                          <ImageIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <ImageIcon className="h-4 w-4 text-black dark:text-white" />
                           Caption
                         </h4>
-                        <p className="text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-950/20 px-4 py-3 rounded-lg text-sm leading-relaxed italic border border-blue-200 dark:border-blue-800">
+                        <p className="text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900/20 px-4 py-3 rounded-lg text-sm leading-relaxed italic border border-gray-300 dark:border-gray-700">
                           "{results.caption}"
                         </p>
                       </div>
@@ -531,10 +531,9 @@ export default function UploadPage() {
                       {/* LLM Explanation - Hidden */}
                       <div className="space-y-2 hidden">
                         <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
-                          <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                           LLM Reasoning
                         </h4>
-                        <p className="text-gray-700 dark:text-gray-300 bg-purple-50 dark:bg-purple-950/20 px-4 py-3 rounded-lg text-sm leading-relaxed border border-purple-200 dark:border-purple-800">
+                        <p className="text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900/20 px-4 py-3 rounded-lg text-sm leading-relaxed border border-gray-300 dark:border-gray-700">
                           {results.explanation}
                         </p>
                       </div>
@@ -543,10 +542,9 @@ export default function UploadPage() {
                       {results.explanation && (
                         <div className="space-y-2">
                           <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 uppercase tracking-wide">
-                            <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                             Explanation
                           </h4>
-                          <p className="text-gray-700 dark:text-gray-300 bg-purple-50 dark:bg-purple-950/20 px-4 py-3 rounded-lg text-sm leading-relaxed border border-purple-200 dark:border-purple-800">
+                          <p className="text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-900/20 px-4 py-3 rounded-lg text-sm leading-relaxed border border-gray-300 dark:border-gray-700">
                             {results.explanation}
                           </p>
                         </div>
