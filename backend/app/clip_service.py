@@ -4,19 +4,40 @@ import torch
 import open_clip
 from PIL import Image
 from typing import Dict, List, Optional, Tuple
+import logging
 
 from .prompt_service import build_prompts_for_label
 
+logger = logging.getLogger(__name__)
+
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-# load CLIP once
-_model, _, _preprocess = open_clip.create_model_and_transforms(
-    "ViT-L-14",
-    pretrained="openai",
-)
-_tokenizer = open_clip.get_tokenizer("ViT-L-14")
-_model = _model.to(DEVICE)
-_model.eval()
+# Lazy loading for CLIP model
+_model = None
+_preprocess = None
+_tokenizer = None
+
+def _load_clip_model():
+    """Load CLIP model lazily to save memory"""
+    global _model, _preprocess, _tokenizer
+    
+    if _model is not None:
+        return _model, _preprocess, _tokenizer
+    
+    try:
+        logger.info("⚡ Loading CLIP ViT-L-14 model (openai weights)...")
+        _model, _, _preprocess = open_clip.create_model_and_transforms(
+            "ViT-L-14",
+            pretrained="openai",
+        )
+        _tokenizer = open_clip.get_tokenizer("ViT-L-14")
+        _model = _model.to(DEVICE)
+        _model.eval()
+        logger.info("✓ ViT-H/14 CLIP model loaded successfully")
+        return _model, _preprocess, _tokenizer
+    except Exception as e:
+        logger.error(f"Failed to load CLIP model: {e}")
+        raise
 
 # adaptive state (in-memory)
 CLASS_PROTOTYPES: Dict[str, np.ndarray] = {}
@@ -26,17 +47,20 @@ TEMPERATURE = 0.01                  # temperature scaling for confidence calibra
 
 
 def encode_texts(texts: List[str]) -> torch.Tensor:
+    model, _, _ = _load_clip_model()
+    tokenizer = _tokenizer
     with torch.no_grad():
-        tokens = _tokenizer(texts).to(DEVICE)
-        feats = _model.encode_text(tokens)
+        tokens = tokenizer(texts).to(DEVICE)
+        feats = model.encode_text(tokens)
         feats /= feats.norm(dim=-1, keepdim=True)
     return feats  # [N, D]
 
 
 def encode_image(img: Image.Image) -> np.ndarray:
-    tensor = _preprocess(img).unsqueeze(0).to(DEVICE)
+    model, preprocess, _ = _load_clip_model()
+    tensor = preprocess(img).unsqueeze(0).to(DEVICE)
     with torch.no_grad():
-        feats = _model.encode_image(tensor)
+        feats = model.encode_image(tensor)
         feats /= feats.norm(dim=-1, keepdim=True)
     return feats.cpu().numpy()[0]  # [D]
 

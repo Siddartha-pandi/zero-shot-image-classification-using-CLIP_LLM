@@ -7,13 +7,13 @@ import { Brain, Sparkles } from "lucide-react"
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-white via-blue-50 to-purple-50 dark:from-gray-950 dark:via-blue-950/40 dark:to-purple-950/40 p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-2xl border-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
           <CardHeader className="space-y-3">
             <div className="flex items-center justify-center">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-lg">
-                <Brain className="h-8 w-8 text-white" />
+              <div className="bg-blue-600 dark:bg-blue-500 p-3 rounded-lg">
+                <Brain className="h-8 w-8 text-white dark:text-white" />
               </div>
             </div>
             <CardTitle className="text-center text-2xl">Sign In</CardTitle>
@@ -37,7 +37,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                  className="w-full bg-blue-600 dark:bg-blue-500 text-white dark:text-white border-2 border-blue-600 dark:border-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all"
                 >
                   <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                     <path
@@ -64,10 +64,10 @@ export default function LoginPage() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                <div className="w-full border-t border-blue-200 dark:border-blue-800"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+                <span className="px-2 bg-white dark:bg-gray-900 text-blue-600 dark:text-blue-400">
                   Information
                 </span>
               </div>
@@ -75,15 +75,15 @@ export default function LoginPage() {
 
             <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30">
-                <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">First time?</p>
                   <p>Just sign in with Google and your account will be created automatically</p>
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/30">
+                <p className="text-xs text-purple-700 dark:text-purple-300">
                   By signing in, you agree to our terms of service and privacy policy. Your Google account information is used only for authentication.
                 </p>
               </div>

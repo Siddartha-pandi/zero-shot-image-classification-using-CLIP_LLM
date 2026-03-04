@@ -4,9 +4,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
-.env
-.env.local
-!.env.example
+# ✓ .env files are now tracked in git
 .venv
 env/
 venv/

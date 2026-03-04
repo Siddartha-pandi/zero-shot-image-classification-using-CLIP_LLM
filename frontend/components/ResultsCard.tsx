@@ -116,7 +116,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-xl">
-            <Brain className="h-5 w-5 text-blue-600" />
+            <Brain className="h-5 w-5 text-gray-800 dark:text-gray-200" />
             Classification Results
           </CardTitle>
           <Button 
@@ -136,16 +136,16 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
       <CardContent className="space-y-6">
         {/* Domain Info - Prominent Display */}
         {results.domain_info && (
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 rounded-lg p-4 border border-purple-200 dark:border-purple-800 shadow-sm">
+          <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-950/40 dark:to-purple-950/40 rounded-lg p-4 border border-blue-300 dark:border-blue-700 shadow-sm">
             <div className="flex items-center gap-2">
-              <Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <div>
-                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wide">Image Domain</span>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 capitalize">
+                <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">Image Domain</span>
+                <p className="text-lg font-bold text-blue-900 dark:text-blue-100 capitalize">
                   {results.domain_info.domain.replace(/_/g, ' ')}
                 </p>
               </div>
-              <Badge variant="outline" className="ml-auto bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700">
+              <Badge variant="outline" className="ml-auto bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700">
                 {Math.min(100, (results.domain_info.confidence * 100)).toFixed(0)}% match
               </Badge>
             </div>
@@ -153,7 +153,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
         )}
 
         {/* Top Prediction Highlight */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-xl p-5 border-2 border-blue-200 dark:border-blue-800 shadow-sm">
+        <div className="bg-linear-to-br from-blue-50 to-purple-50 dark:from-blue-950/40 dark:to-purple-950/40 rounded-xl p-5 border-2 border-blue-300 dark:border-blue-700 shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
               Top Prediction
@@ -162,7 +162,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
           </div>
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold capitalize text-blue-900 dark:text-blue-100">{topLabel}</span>
-            <Badge className="text-lg px-4 py-1.5 bg-blue-600 hover:bg-blue-700">
+            <Badge className="text-lg px-4 py-1.5 bg-blue-600 dark:bg-blue-500 text-white dark:text-white hover:bg-blue-700 dark:hover:bg-blue-600">
               {Math.min(100, (topScore * 100)).toFixed(1)}%
             </Badge>
           </div>
@@ -178,11 +178,11 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
             <div key={label} className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium capitalize text-gray-800 dark:text-gray-200">{label}</span>
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                <span className="font-semibold text-gray-700 dark:text-gray-300">
                   {Math.min(100, (score * 100)).toFixed(1)}%
                 </span>
               </div>
-              <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden shadow-inner">
+              <div className="h-3 bg-blue-100 dark:bg-blue-900/30 rounded-full overflow-hidden shadow-inner">
                 <div
                   className="h-full gradient-bar transition-all duration-700 ease-out rounded-full"
                   style={{ width: `${Math.min(100, score * 100)}%` }}
@@ -195,7 +195,7 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
     </Card>
 
     {/* Zero-Shot Classification Output Card */}
-    <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-gray-50 dark:bg-gray-900">
+    <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-linear-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
       <CardHeader className="pb-4">
         <CardTitle className="text-2xl font-bold">Zero-Shot Classification Output</CardTitle>
       </CardHeader>
@@ -218,11 +218,11 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
 
         {/* Explanation Section */}
         {results.explanation && (
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+          <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-950/40 dark:to-purple-950/40 rounded-xl p-4 border border-blue-300 dark:border-blue-700">
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
               <span>💡</span> Explanation
             </h3>
-            <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+            <p className="text-sm leading-relaxed text-blue-800 dark:text-blue-200 whitespace-pre-wrap">
               {results.explanation}
             </p>
           </div>
@@ -236,8 +236,8 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
             </h4>
             <ul className="space-y-2">
               {results.visual_features.map((feature, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <span className="w-2 h-2 bg-gray-900 dark:bg-gray-100 rounded-full"></span>
+                <li key={idx} className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                  <span className="w-2 h-2 bg-purple-500 dark:bg-purple-400 rounded-full"></span>
                   <span className="capitalize">{feature.replace(/_/g, ' ')}</span>
                 </li>
               ))}

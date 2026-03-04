@@ -8,63 +8,67 @@ import numpy as np
 from PIL import Image
 from typing import List, Tuple, Optional
 import logging
+import time
+
+from .model_cache import ModelLoader, DEVICE, log_memory_usage
 
 logger = logging.getLogger(__name__)
-
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 class MedCLIPModel:
     """MedCLIP model for medical image classification"""
     
     def __init__(self):
         self.device = DEVICE
-        self.model = None
-        self.processor = None
-        self._load_model()
+        self._loaded = False
+        self._cache_data = None
     
-    def _load_model(self):
-        """Load MedCLIP model"""
+    def _ensure_loaded(self):
+        """Lazy load model on first use with intelligent caching"""
+        if self._loaded and self._cache_data:
+            return
+        
         try:
             logger.info("=" * 60)
-            logger.info("Loading Medical CLIP model...")
+            logger.info("⚡ Loading MedCLIP model (fast cached loading)...")
             logger.info("=" * 60)
             
-            # Try to import and load MedCLIP
-            try:
-                from medclip import MedCLIPModel as MedCLIPBase, MedCLIPVisionModelViT
-                from medclip import MedCLIPProcessor
-                
-                logger.info("MedCLIP library found, loading pretrained model...")
-                # Load pre-trained MedCLIP
-                self.processor = MedCLIPProcessor()
-                self.model = MedCLIPBase(vision_cls=MedCLIPVisionModelViT)
-                self.model.from_pretrained()
-                self.model = self.model.to(self.device)
-                self.model.eval()
-                
-                logger.info(f"✓ MedCLIP loaded successfully on {self.device}")
-                
-            except ImportError:
-                logger.warning("MedCLIP not installed, using OpenCLIP fallback for medical")
-                # Fallback to regular OpenCLIP with medical prompts
-                import open_clip
-                logger.info("Loading OpenCLIP ViT-B-16 as medical fallback...")
-                self.model, _, self.preprocess = open_clip.create_model_and_transforms(
-                    "ViT-B-16",
-                    pretrained="openai"
-                )
-                self.tokenizer = open_clip.get_tokenizer("ViT-B-16")
-                self.model = self.model.to(self.device)
-                self.model.eval()
-                self.processor = None
-                logger.info(f"✓ OpenCLIP fallback loaded on {self.device}")
+            start_time = time.time()
+            self._cache_data = ModelLoader.load_medclip_fast()
+            load_time = time.time() - start_time
             
+            logger.info(f"✓ MedCLIP ready in {load_time:.2f}s")
             logger.info("=" * 60)
-                
+            self._loaded = True
+            log_memory_usage()
+            
         except Exception as e:
-            logger.error(f"Failed to load Medical CLIP model: {e}")
-            logger.error("Models may need to be downloaded on first request")
+            logger.error(f"Failed to load Medical CLIP model: {e}", exc_info=True)
+            self._loaded = False
             raise
+    
+    @property
+    def model(self):
+        """Get model with lazy loading"""
+        self._ensure_loaded()
+        return self._cache_data["model"]
+    
+    @property
+    def processor(self):
+        """Get processor with lazy loading"""
+        self._ensure_loaded()
+        return self._cache_data.get("processor")
+    
+    @property
+    def preprocess(self):
+        """Get preprocess with lazy loading (for fallback)"""
+        self._ensure_loaded()
+        return self._cache_data.get("preprocess")
+    
+    @property
+    def tokenizer(self):
+        """Get tokenizer with lazy loading (for fallback)"""
+        self._ensure_loaded()
+        return self._cache_data.get("tokenizer")
     
     def encode_image(self, image: Image.Image) -> np.ndarray:
         """
@@ -76,6 +80,7 @@ class MedCLIPModel:
         Returns:
             Normalized embedding vector [D]
         """
+        self._ensure_loaded()
         with torch.no_grad():
             if self.processor is not None:
                 # Using actual MedCLIP
@@ -101,6 +106,7 @@ class MedCLIPModel:
         Returns:
             Normalized embedding matrix [N, D]
         """
+        self._ensure_loaded()
         # Add medical context to prompts
         medical_prompts = [self._format_medical_prompt(text) for text in texts]
         

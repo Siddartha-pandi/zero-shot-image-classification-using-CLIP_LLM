@@ -6,6 +6,9 @@ from typing import List, Optional
 from PIL import Image
 import io
 import logging
+import numpy as np
+import json
+import time
 
 from .clip_service import (
     classify_image,
@@ -19,6 +22,9 @@ from .caption_service import generate_caption
 from .domain_service import infer_domain_from_hint, infer_domain
 from .llm_service import llm_reason_and_label, llm_narrative, extract_objects
 from .evaluation_service import evaluate_dataset
+from .config_performance import PRELOAD_MODELS
+from .models.router import get_router
+from .models.model_cache import log_memory_usage
 
 # Import hybrid classification routes
 from .routes.classify import router as classify_router
@@ -30,9 +36,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+# Custom JSON encoder to handle numpy types
+class NumpyEncoder(json.JSONEncoder):
+    """Custom JSON encoder that handles numpy data types"""
+    def default(self, obj):
+        if isinstance(obj, (np.integer, np.floating)):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
+
+
 app = FastAPI(
-    title="Hybrid ViT-H/14 + MedCLIP Classification System",
-    description="Multi-domain zero-shot image classification with automatic model routing",
+    title="Zero-Shot Classification with ViT-H/14",
+    description="High-accuracy zero-shot image classification using ViT-H/14 CLIP model",
     version="2.0.0"
 )
 
@@ -52,12 +70,43 @@ app.include_router(classify_router)
 async def startup_event():
     """Server startup event"""
     logger.info("=" * 80)
-    logger.info("Starting Hybrid ViT-H/14 + MedCLIP Classification System")
+    logger.info("⚡ Zero-Shot Classification System (ViT-L-14 OpenAI)")
     logger.info("=" * 80)
-    logger.info("Note: Models will load on first request (lazy loading)")
-    logger.info("This may take 1-2 minutes for the first classification")
+    logger.info("Model: OpenCLIP ViT-L-14 (768-dim, OpenAI pretrained, high-accuracy)")
+    
+    if PRELOAD_MODELS:
+        logger.info("Status: Preloading models on startup...")
+        
+        try:
+            # Preload all models
+            logger.info("\n📦 Loading ViT-H/14 and MedCLIP models...")
+            start_time = time.time()
+            
+            # Load router (triggers ViT-H/14 and MedCLIP loading)
+            router = get_router()
+            
+            # Load caption model
+            logger.info("📦 Loading BLIP caption model...")
+            _ = generate_caption(Image.new('RGB', (224, 224)))
+            
+            load_time = time.time() - start_time
+            log_memory_usage()
+            
+            logger.info(f"\n✅ All models loaded successfully in {load_time:.2f}s")
+            logger.info("Status: Ready (all models in memory)")
+            logger.info("First classification: < 2 seconds (models cached)")
+            logger.info("Subsequent classifications: < 2 seconds (cached)")
+            
+        except Exception as e:
+            logger.error(f"Failed to preload models: {e}", exc_info=True)
+            logger.warning("System will use lazy loading fallback")
+    else:
+        logger.info("Status: Lazy loading - models load on first request")
+        logger.info("First classification: 1-2 minutes (model loading)")
+        logger.info("Subsequent classifications: < 2 seconds (cached)")
+    
     logger.info("=" * 80)
-    logger.info("Server ready!")
+    logger.info("✓ Server ready for inference")
     logger.info("=" * 80)
 
 

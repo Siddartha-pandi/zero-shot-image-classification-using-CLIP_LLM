@@ -9,57 +9,62 @@ from PIL import Image
 from typing import List, Tuple
 import numpy as np
 import logging
+import time
+
+from .model_cache import ModelLoader, DEVICE, log_memory_usage
 
 logger = logging.getLogger(__name__)
-
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 class ViTH14Model:
     """ViT-H/14 model for universal image classification"""
     
     def __init__(self):
         self.device = DEVICE
-        self.model = None
-        self.preprocess = None
-        self.tokenizer = None
-        self._load_model()
+        self._loaded = False
+        self._cache_data = None
     
-    def _load_model(self):
-        """Load ViT-H/14 model from OpenCLIP"""
+    def _ensure_loaded(self):
+        """Lazy load model on first use with intelligent caching"""
+        if self._loaded and self._cache_data:
+            return
+        
         try:
             logger.info("=" * 60)
-            logger.info("Loading ViT-H/14 model (this may take 1-2 minutes)...")
+            logger.info("⚡ Loading ViT-L-14 model (openai weights, fast cached)...")
             logger.info("=" * 60)
             
-            # Use ViT-L-14 by default (faster, smaller, already downloaded)
-            try:
-                logger.info("Attempting to load ViT-L-14 (lightweight)...")
-                self.model, _, self.preprocess = open_clip.create_model_and_transforms(
-                    "ViT-L-14",
-                    pretrained="openai"
-                )
-                logger.info("✓ ViT-L-14 loaded successfully")
-            except Exception as e1:
-                logger.warning(f"ViT-L-14 failed ({e1}), trying ViT-B-32...")
-                # Fallback to even smaller model
-                try:
-                    self.model, _, self.preprocess = open_clip.create_model_and_transforms(
-                        "ViT-B-32",
-                        pretrained="openai"
-                    )
-                    logger.info("✓ ViT-B-32 loaded successfully (fallback)")
-                except Exception as e2:
-                    logger.error(f"All model loading attempts failed: {e2}")
-                    raise
+            # Use fast loader with caching
+            start_time = time.time()
+            self._cache_data = ModelLoader.load_clip_model_fast("ViT-L-14")
+            load_time = time.time() - start_time
             
-            self.tokenizer = open_clip.get_tokenizer("ViT-L-14")
-            self.model = self.model.to(self.device)
-            self.model.eval()
-            logger.info(f"✓ Model ready on {self.device}")
+            logger.info(f"✓ ViT-L-14 ready in {load_time:.2f}s")
             logger.info("=" * 60)
+            self._loaded = True
+            log_memory_usage()
+            
         except Exception as e:
-            logger.error(f"Failed to load CLIP model: {e}")
+            logger.error(f"Failed to load CLIP model: {e}", exc_info=True)
+            self._loaded = False
             raise
+    
+    @property
+    def model(self):
+        """Get model with lazy loading"""
+        self._ensure_loaded()
+        return self._cache_data["model"]
+    
+    @property
+    def preprocess(self):
+        """Get preprocessor with lazy loading"""
+        self._ensure_loaded()
+        return self._cache_data["preprocess"]
+    
+    @property
+    def tokenizer(self):
+        """Get tokenizer with lazy loading"""
+        self._ensure_loaded()
+        return self._cache_data["tokenizer"]
     
     def encode_image(self, image: Image.Image) -> np.ndarray:
         """
@@ -71,6 +76,7 @@ class ViTH14Model:
         Returns:
             Normalized embedding vector [D]
         """
+        self._ensure_loaded()
         with torch.no_grad():
             image_input = self.preprocess(image).unsqueeze(0).to(self.device)
             image_features = self.model.encode_image(image_input)
@@ -87,6 +93,7 @@ class ViTH14Model:
         Returns:
             Normalized embedding matrix [N, D]
         """
+        self._ensure_loaded()
         with torch.no_grad():
             text_tokens = self.tokenizer(texts).to(self.device)
             text_features = self.model.encode_text(text_tokens)

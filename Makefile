@@ -1,7 +1,7 @@
 .PHONY: help install install-backend install-frontend setup env-setup status start start-backend start-frontend start-backend-bg start-frontend-bg start-all-bg dev clean kill-backend kill-all test test-backend test-frontend lint lint-backend lint-frontend add-classes check-backend check-frontend check-all logs logs-backend logs-frontend version build build-backend build-frontend docker-build
 
-# Python executable path
-PYTHON = C:/Python313/python.exe
+# Python executable path (use 'python' for portability - add to PATH)
+PYTHON = python
 NODE = node
 NPM = npm
 
@@ -207,9 +207,8 @@ version:
 	@powershell -Command "Write-Host 'OS: ' -NoNewline; [System.Environment]::OSVersion.VersionString"
 
 add-classes:
-	@echo "$(YELLOW)Adding default classes to backend...$(NC)"
-	cd backend && $(PYTHON) test_add_classes.py
-	@echo "$(GREEN)✓ Classes added$(NC)"
+	@echo "$(YELLOW)Classes management removed in optimization$(NC)"
+	@echo "$(YELLOW)Define classes in your configuration files$(NC)"
 
 build: build-backend build-frontend
 	@echo ""

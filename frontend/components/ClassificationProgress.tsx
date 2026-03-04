@@ -29,7 +29,7 @@ export default function ClassificationProgress({
   const totalSteps = steps.length
 
   return (
-    <Card className="h-3/4 shadow-lg border-2 border-blue-300 dark:border-blue-700 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
+    <Card className="h-3/4 shadow-lg border-2 border-blue-300 dark:border-blue-700 bg-linear-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
       <CardContent className="pt-4 pb-4 px-6">
         <div className="space-y-3">
           {/* Header with overall progress */}
@@ -50,9 +50,9 @@ export default function ClassificationProgress({
           {/* Progress Steps */}
           <div className="relative">
             {/* Progress Line */}
-            <div className="absolute top-6 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 mx-12">
+            <div className="absolute top-6 left-0 right-0 h-1 bg-blue-200 dark:bg-blue-900/50 mx-12">
               <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500 ease-out"
+                className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-500 ease-out"
                 style={{ 
                   width: `${totalSteps > 1 ? (completedSteps / (totalSteps - 1)) * 100 : 0}%` 
                 }}
@@ -66,9 +66,9 @@ export default function ClassificationProgress({
                   {/* Step Icon */}
                   <div className={cn(
                     "relative z-10 w-12 h-12 rounded-full flex items-center justify-center border-4 transition-all duration-300 shadow-lg",
-                    step.status === 'completed' && "bg-green-500 border-green-500",
-                    step.status === 'in-progress' && "bg-blue-500 border-blue-500 animate-pulse",
-                    step.status === 'error' && "bg-red-500 border-red-500",
+                    step.status === 'completed' && "bg-black border-black dark:bg-white dark:border-white",
+                    step.status === 'in-progress' && "bg-gray-600 border-gray-600 animate-pulse dark:bg-gray-400 dark:border-gray-400",
+                    step.status === 'error' && "bg-black border-black dark:bg-white dark:border-white",
                     step.status === 'pending' && "bg-gray-300 dark:bg-gray-700 border-gray-300 dark:border-gray-700"
                   )}>
                     {step.status === 'completed' && (

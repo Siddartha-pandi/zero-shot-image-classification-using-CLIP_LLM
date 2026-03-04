@@ -90,8 +90,8 @@ export default function ImageUploadCard({
         <div
           className={cn(
             "relative border-2 border-dashed rounded-xl h-full w-full flex flex-col items-center justify-center transition-all duration-300",
-            dragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20 scale-[1.02]" : "border-gray-300 dark:border-gray-700",
-            disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/10",
+            dragActive ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-950/40 scale-[1.02]" : "border-blue-200 dark:border-blue-900",
+            disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30",
             preview || imagePreview ? "p-4" : "p-8"
           )}
           onDragEnter={handleDrag}
@@ -135,7 +135,7 @@ export default function ImageUploadCard({
             </div>
           ) : (
             <div className="text-center space-y-2">
-              <div className="bg-blue-100 dark:bg-blue-900/30 w-12 h-12 rounded-xl flex items-center justify-center mx-auto">
+              <div className="bg-blue-200 dark:bg-blue-900/50 w-12 h-12 rounded-xl flex items-center justify-center mx-auto">
                 <Image className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="space-y-2">

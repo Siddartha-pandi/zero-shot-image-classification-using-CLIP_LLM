@@ -30,11 +30,35 @@ MEDICAL_THRESHOLD = 0.40  # Increased from 0.25 to be more conservative
 TRAFFIC_THRESHOLD = 0.35  # Add minimum threshold for traffic detection
 
 class DomainRouter:
-    """Routes images to appropriate CLIP model based on domain"""
+    """Routes images to appropriate CLIP model based on domain (ViT-L-14 OpenAI)"""
     
     def __init__(self):
-        self.vith14 = get_vith14_model()
-        self.medclip = get_medclip_model()
+        self.vith14 = None
+        self.medclip = None
+        self._loaded = False
+    
+    def _ensure_loaded(self):
+        """Lazy load models on first use"""
+        if self._loaded:
+            return
+        
+        try:
+            logger.info("⚡ Initializing ViT-L-14 model (openai pretrained)...")
+            self.vith14 = get_vith14_model()
+            logger.info("✓ ViT-L-14 ready (768-dim embeddings, OpenAI pretrained)")
+        except Exception as e:
+            logger.error(f"Failed to initialize ViT-H/14: {e}", exc_info=True)
+            raise
+        
+        try:
+            logger.info("Initializing MedCLIP model...")
+            self.medclip = get_medclip_model()
+            logger.info("✓ MedCLIP model initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize MedCLIP: {e}", exc_info=True)
+            raise
+        
+        self._loaded = True
     
     def estimate_domain(self, image: Image.Image) -> Tuple[DomainType, float, dict]:
         """
@@ -65,6 +89,7 @@ class DomainRouter:
         Returns:
             Tuple of (domain, confidence, all_scores)
         """
+        self._ensure_loaded()
         # Encode image with ViT-H/14
         image_emb = self.vith14.encode_image(image)
         

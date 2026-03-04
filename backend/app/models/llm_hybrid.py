@@ -15,11 +15,16 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 _api_key = os.getenv("GEMINI_API_KEY")
 if _api_key:
-    genai.configure(api_key=_api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    try:
+        genai.configure(api_key=_api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        logger.info("✓ Gemini API configured successfully")
+    except Exception as e:
+        logger.warning(f"Failed to configure Gemini API: {e}")
+        model = None
 else:
     model = None
-    logger.warning("GEMINI_API_KEY not found - LLM features will be limited")
+    logger.warning("GEMINI_API_KEY not found - LLM features will use fallbacks")
 
 
 def generate_hybrid_explanation(
@@ -79,7 +84,7 @@ Respond ONLY with the explanation text, nothing else."""
             prompt,
             generation_config=genai.types.GenerationConfig(
                 temperature=0.3,
-                max_output_tokens=300,
+                max_output_tokens=300
             )
         )
         
@@ -92,7 +97,7 @@ Respond ONLY with the explanation text, nothing else."""
         }
         
     except Exception as e:
-        logger.error(f"LLM explanation error: {e}")
+        logger.error(f"LLM explanation error: {e}", exc_info=True)
         return _generate_explanation_fallback(
             domain, model_used, prediction, confidence, caption, top_matches
         )
@@ -286,7 +291,7 @@ MANDATORY: Write at least 200 words. Return ONLY the narrative text as a continu
             return _generate_narrative_fallback(domain, model_used, prediction, caption, top_matches)
         
     except Exception as e:
-        logger.error(f"LLM narrative generation error: {e}")
+        logger.error(f"LLM narrative generation error: {e}", exc_info=True)
         return _generate_narrative_fallback(domain, model_used, prediction, caption, top_matches)
 
 

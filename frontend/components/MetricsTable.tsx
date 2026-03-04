@@ -81,11 +81,11 @@ export default function MetricsTable({
 
   const getScoreBadge = (score: number, threshold: { good: number; fair: number }) => {
     if (score >= threshold.good) {
-      return <Badge className="bg-green-500 text-white">Excellent</Badge>
+      return <Badge className="bg-green-500 text-white dark:bg-green-600 dark:text-white">Excellent</Badge>
     } else if (score >= threshold.fair) {
-      return <Badge className="bg-yellow-500 text-white">Good</Badge>
+      return <Badge className="bg-yellow-500 text-white dark:bg-yellow-600 dark:text-white">Good</Badge>
     } else {
-      return <Badge className="bg-red-500 text-white">Needs Improvement</Badge>
+      return <Badge className="bg-red-500 text-white dark:bg-red-600 dark:text-white">Needs Improvement</Badge>
     }
   }
 
@@ -149,10 +149,10 @@ export default function MetricsTable({
           name: "Cross-Domain Drop",
           value: formatPercentage(metrics.cross_domain_drop),
           badge: metrics.cross_domain_drop <= 0.2 ? 
-            <Badge className="bg-green-500 text-white">Low</Badge> :
+            <Badge className="bg-green-500 text-white dark:bg-green-600 dark:text-white">Low</Badge> :
             metrics.cross_domain_drop <= 0.4 ?
-            <Badge className="bg-yellow-500 text-white">Medium</Badge> :
-            <Badge className="bg-red-500 text-white">High</Badge>,
+            <Badge className="bg-yellow-500 text-white dark:bg-yellow-600 dark:text-white">Medium</Badge> :
+            <Badge className="bg-red-500 text-white dark:bg-red-600 dark:text-white">High</Badge>,
           description: "Performance drop across different domains",
           icon: metrics.cross_domain_drop <= 0.2 ? TrendingUp : TrendingDown
         },
@@ -160,8 +160,8 @@ export default function MetricsTable({
           name: "Expected Calibration Error",
           value: formatNumber(metrics.ece),
           badge: metrics.ece <= 0.1 ? 
-            <Badge className="bg-green-500 text-white">Well Calibrated</Badge> :
-            <Badge className="bg-yellow-500 text-white">Fair</Badge>,
+            <Badge className="bg-green-500 text-white dark:bg-green-600 dark:text-white">Well Calibrated</Badge> :
+            <Badge className="bg-yellow-500 text-white dark:bg-yellow-600 dark:text-white">Fair</Badge>,
           description: "Measure of prediction confidence calibration"
         }
       ]
@@ -260,9 +260,9 @@ export default function MetricsTable({
                           <TableCell className="font-mono">
                             <span className={cn(
                               "px-2 py-1 rounded",
-                              classMetrics.f1 >= 0.8 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
-                              classMetrics.f1 >= 0.6 ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" :
-                              "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                              classMetrics.f1 >= 0.8 ? "bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200" :
+                              classMetrics.f1 >= 0.6 ? "bg-gray-300 text-gray-800 dark:bg-gray-700 dark:text-gray-200" :
+                              "bg-gray-400 text-gray-800 dark:bg-gray-600 dark:text-gray-100"
                             )}>
                               {formatPercentage(classMetrics.f1)}
                             </span>

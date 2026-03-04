@@ -92,7 +92,7 @@ export default function ClassManager() {
     <Card className="shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Tag className="h-5 w-5 text-purple-600" />
+          <Tag className="h-5 w-5 text-purple-600 dark:text-purple-400" />
           Class Manager
         </CardTitle>
         <CardDescription>
@@ -115,7 +115,7 @@ export default function ClassManager() {
               <RefreshCw className={`h-4 w-4 ${isLoadingClasses ? 'animate-spin' : ''}`} />
             </Button>
           </div>
-          <div className="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg min-h-[60px]">
+          <div className="flex flex-wrap gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg min-h-15">
             {isLoadingClasses ? (
               <div className="w-full flex items-center justify-center py-4">
                 <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
@@ -160,8 +160,8 @@ export default function ClassManager() {
                   disabled={isLoading}
                   className={`p-3 text-left rounded-lg border-2 transition-all ${
                     selectedDomain === domain.value
-                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                      ? 'border-blue-500 dark:border-blue-400 bg-blue-100 dark:bg-blue-900/40'
+                      : 'border-blue-200 dark:border-blue-800 hover:border-blue-400'
                   } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <div className="font-medium text-sm">{domain.label}</div>
@@ -197,8 +197,8 @@ export default function ClassManager() {
           <div
             className={`flex items-center gap-2 p-3 rounded-lg ${
               message.type === 'success'
-                ? 'bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400'
-                : 'bg-red-50 dark:bg-red-950/20 text-red-800 dark:text-red-400'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
             }`}
           >
             {message.type === 'success' ? (

@@ -5,19 +5,19 @@ import { Brain, Sparkles, Shield, Zap } from "lucide-react"
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-white via-blue-50 to-purple-50 dark:from-gray-950 dark:via-blue-950/40 dark:to-purple-950/40">
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Column - Hero Content */}
           <div className="space-y-8">
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+              <div className="inline-flex items-center gap-2 bg-blue-600 dark:bg-blue-500 text-white dark:text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                 <Sparkles className="h-4 w-4" />
                 AI-Powered Image Classification
               </div>
               
               <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                   Adaptive CLIP-LLM
                 </span>
                 <br />
@@ -34,7 +34,7 @@ export default function LandingPage() {
             {/* Features */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-start gap-3">
-                <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg">
+                <div className="bg-blue-200 dark:bg-blue-900/50 p-2 rounded-lg">
                   <Brain className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
@@ -44,7 +44,7 @@ export default function LandingPage() {
               </div>
               
               <div className="flex items-start gap-3">
-                <div className="bg-purple-100 dark:bg-purple-900 p-2 rounded-lg">
+                <div className="bg-purple-200 dark:bg-purple-900/50 p-2 rounded-lg">
                   <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
@@ -54,8 +54,8 @@ export default function LandingPage() {
               </div>
               
               <div className="flex items-start gap-3">
-                <div className="bg-indigo-100 dark:bg-indigo-900 p-2 rounded-lg">
-                  <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <div className="bg-pink-200 dark:bg-pink-900/50 p-2 rounded-lg">
+                  <Sparkles className="h-5 w-5 text-pink-600 dark:text-pink-400" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">LLM Powered</h3>
@@ -64,8 +64,8 @@ export default function LandingPage() {
               </div>
               
               <div className="flex items-start gap-3">
-                <div className="bg-pink-100 dark:bg-pink-900 p-2 rounded-lg">
-                  <Shield className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+                <div className="bg-green-200 dark:bg-green-900/50 p-2 rounded-lg">
+                  <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">Secure</h3>
@@ -85,7 +85,7 @@ export default function LandingPage() {
                 <Button 
                   type="submit"
                   size="lg" 
-                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+                  className="w-full sm:w-auto bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                 >
                   <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                     <path
@@ -148,8 +148,8 @@ export default function LandingPage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-950">
-                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mt-2"></div>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-pink-50 dark:bg-pink-950">
+                    <div className="w-1.5 h-1.5 bg-pink-600 rounded-full mt-2"></div>
                     <div>
                       <h4 className="font-medium text-gray-900 dark:text-white">Domain Detection</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -158,8 +158,8 @@ export default function LandingPage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-pink-50 dark:bg-pink-950">
-                    <div className="w-1.5 h-1.5 bg-pink-600 rounded-full mt-2"></div>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+                    <div className="w-1.5 h-1.5 bg-amber-600 dark:bg-amber-400 rounded-full mt-2"></div>
                     <div>
                       <h4 className="font-medium text-gray-900 dark:text-white">Evaluation Tools</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400">

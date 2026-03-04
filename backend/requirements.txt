@@ -11,6 +11,3 @@ transformers
 sentencepiece
 python-dotenv
 google-generativeai
-matplotlib
-seaborn
-scikit-learn

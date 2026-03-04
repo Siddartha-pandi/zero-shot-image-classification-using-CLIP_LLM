@@ -61,22 +61,22 @@ export default function EnhancedResultsCard({
   const getConfidenceBadgeColor = (band: string) => {
     switch (band) {
       case 'High':
-        return 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
+        return 'bg-green-500 text-white dark:bg-green-600 dark:text-white border-green-500 dark:border-green-600'
       case 'Medium':
-        return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20'
+        return 'bg-yellow-500 text-white dark:bg-yellow-600 dark:text-white border-yellow-500 dark:border-yellow-600'
       case 'Low':
-        return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20'
+        return 'bg-red-500 text-white dark:bg-red-600 dark:text-white border-red-500 dark:border-red-600'
       default:
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400'
+        return 'bg-gray-500 text-white dark:bg-gray-600 dark:text-white'
     }
   }
 
   const getBandEmoji = (band: string) => {
     switch (band) {
-      case 'High': return '🟢'
-      case 'Medium': return '🟡'
-      case 'Low': return '🔴'
-      default: return '⚪'
+      case 'High': return '■'
+      case 'Medium': return '◐'
+      case 'Low': return '□'
+      default: return '◯'
     }
   }
 
@@ -234,7 +234,7 @@ export default function EnhancedResultsCard({
                   <div className="space-y-1">
                     {resultCard.domain_adaptation.auto_tuning_actions.map((action, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <CheckCircle className="h-3 w-3 text-black dark:text-white" />
                         <span>{action}</span>
                       </div>
                     ))}
@@ -254,8 +254,8 @@ export default function EnhancedResultsCard({
             ⚠️ Anomalies & Suggested Fixes
           </h3>
           {resultCard.anomalies.length === 0 ? (
-            <div className="p-4 rounded-lg border bg-green-500/5 border-green-500/20">
-              <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+            <div className="p-4 rounded-lg border bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700">
+              <div className="flex items-center gap-2 text-gray-800 dark:text-gray-200">
                 <CheckCircle className="h-5 w-5" />
                 <span className="font-medium">No anomalies detected</span>
               </div>
@@ -265,10 +265,10 @@ export default function EnhancedResultsCard({
               {resultCard.anomalies.map((anomaly, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-lg border bg-yellow-500/5 border-yellow-500/20"
+                  className="p-4 rounded-lg border bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700"
                 >
                   <div className="flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                    <AlertTriangle className="h-5 w-5 text-gray-700 dark:text-gray-300 mt-0.5" />
                     <div className="flex-1 space-y-2">
                       <p className="font-medium text-sm">{anomaly.issue}</p>
                       <div className="flex items-center gap-2">

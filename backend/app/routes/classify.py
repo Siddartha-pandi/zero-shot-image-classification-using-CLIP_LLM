@@ -10,6 +10,7 @@ import io
 import time
 import logging
 from typing import Optional, List
+import numpy as np
 
 from ..models.router import get_router
 from ..models.clip_vith14 import get_vith14_model
@@ -28,6 +29,21 @@ from ..models.llm_hybrid import (
 from ..caption_service import generate_caption
 
 logger = logging.getLogger(__name__)
+
+
+def ensure_json_serializable(obj):
+    """Recursively convert numpy types to Python native types"""
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: ensure_json_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [ensure_json_serializable(item) for item in obj]
+    return obj
 
 router = APIRouter(prefix="/api", tags=["classification"])
 
@@ -160,15 +176,15 @@ async def classify_hybrid(
         # Extract results
         model_used = classification_result["model_used"]
         domain = classification_result["domain"]
-        domain_confidence = classification_result["domain_confidence"]
-        domain_scores = classification_result["domain_scores"]
+        domain_confidence = float(classification_result["domain_confidence"])
+        domain_scores = {k: float(v) for k, v in classification_result["domain_scores"].items()}
         predictions = classification_result["predictions"]
         image_emb = classification_result["image_embedding"]
         
         # Get top prediction
         top_prediction = predictions[0]
-        prediction_label = top_prediction["label"]
-        prediction_score = top_prediction["score"]
+        prediction_label = str(top_prediction["label"])
+        prediction_score = float(top_prediction["score"])
         
         # Generate caption
         caption = generate_caption(image)
@@ -186,11 +202,14 @@ async def classify_hybrid(
         confidence_score = compute_confidence_score(
             domain=domain,
             model_used=model_used,
-            prediction_score=prediction_score,
+            prediction_score=float(prediction_score),
             image_emb=image_emb,
             caption_emb=caption_emb,
-            domain_similarity=domain_confidence
+            domain_similarity=float(domain_confidence)
         )
+        
+        # Ensure confidence_score is native Python float
+        confidence_score = float(confidence_score)
         
         # Generate LLM explanation
         llm_result = generate_hybrid_explanation(
@@ -244,11 +263,11 @@ async def classify_hybrid(
             "domain": domain_display,
             "model_used": model_display,
             "prediction": prediction_display,
-            "confidence": round(confidence_score, 2),  # Round to 2 decimal places for cleaner display
+            "confidence": float(round(confidence_score, 2)),  # Ensure native Python float
             "top_predictions": [
                 {
-                    "label": pred["label"].replace("_", " ").title(),
-                    "score": round(pred["score"], 2)
+                    "label": str(pred["label"]).replace("_", " ").title(),
+                    "score": float(pred["score"])
                 }
                 for pred in predictions[:5]  # Return top 5
             ],
@@ -263,16 +282,16 @@ async def classify_hybrid(
             "objects": [
                 {
                     "name": obj.get("name", "").replace("_", " ").title(),
-                    "score": obj.get("score", 0)
+                    "score": float(obj.get("score", 0))
                 }
                 for obj in objects
             ],
             "metadata": {
                 "raw_domain": domain,
-                "domain_confidence": round(domain_confidence, 4),
-                "raw_prediction_score": round(prediction_score, 4),
+                "domain_confidence": float(round(domain_confidence, 4)),
+                "raw_prediction_score": float(round(prediction_score, 4)),
                 "total_labels_evaluated": len(labels),
-                "inference_time_seconds": round(inference_time, 3),
+                "inference_time_seconds": float(round(inference_time, 3)),
                 "model_details": {
                     "name": model_used,
                     "routing": "Automatic domain detection with model selection",
@@ -289,13 +308,24 @@ async def classify_hybrid(
             f"using {model_used} in {inference_time:.2f}s"
         )
         
+        # Ensure all values are JSON serializable
+        response = ensure_json_serializable(response)
         return response
         
     except Exception as e:
         logger.error(f"Classification error: {e}", exc_info=True)
+        import traceback
+        error_detail = traceback.format_exc()
+        logger.error(f"Full traceback:\n{error_detail}")
+        
+        # Return error response with safe types
         return JSONResponse(
             status_code=500,
-            content={"error": str(e), "detail": "Internal server error during classification"}
+            content={
+                "error": str(e),
+                "detail": "Internal server error during classification",
+                "traceback": error_detail
+            }
         )
 
 
@@ -367,15 +397,15 @@ async def classify_open_ended(
         
         # Extract results
         model_used = classification_result["model_used"]
-        domain_confidence = classification_result["domain_confidence"]
-        domain_scores_full = classification_result["domain_scores"]
+        domain_confidence = float(classification_result["domain_confidence"])
+        domain_scores_full = {k: float(v) for k, v in classification_result["domain_scores"].items()}
         predictions = classification_result["predictions"]
         image_emb = classification_result["image_embedding"]
         
         # Get top prediction
         top_prediction = predictions[0]
-        prediction_label = top_prediction["label"]
-        prediction_score = top_prediction["score"]
+        prediction_label = str(top_prediction["label"])
+        prediction_score = float(top_prediction["score"])
         
         # Get appropriate model for caption embedding
         if model_used == "MedCLIP":
@@ -453,11 +483,11 @@ async def classify_open_ended(
             "domain": domain_display,
             "model_used": model_display,
             "prediction": prediction_display,
-            "confidence": round(confidence_score, 2),
+            "confidence": float(round(confidence_score, 2)),
             "top_predictions": [
                 {
-                    "label": pred["label"].replace("_", " ").title(),
-                    "score": round(pred["score"], 2)
+                    "label": str(pred["label"]).replace("_", " ").title(),
+                    "score": float(pred["score"])
                 }
                 for pred in predictions[:5]
             ],
@@ -472,16 +502,16 @@ async def classify_open_ended(
             "objects": [
                 {
                     "name": obj.get("name", "").replace("_", " ").title(),
-                    "score": obj.get("score", 0)
+                    "score": float(obj.get("score", 0))
                 }
                 for obj in objects
             ],
             "metadata": {
                 "raw_domain": domain,
-                "domain_confidence": round(domain_confidence, 4),
-                "raw_prediction_score": round(prediction_score, 4),
+                "domain_confidence": float(round(domain_confidence, 4)),
+                "raw_prediction_score": float(round(prediction_score, 4)),
                 "total_labels_evaluated": len(labels),
-                "inference_time_seconds": round(inference_time, 3),
+                "inference_time_seconds": float(round(inference_time, 3)),
                 "model_details": {
                     "name": model_used,
                     "mode": "open-ended" if user_text is None else "guided",
@@ -489,9 +519,9 @@ async def classify_open_ended(
                 },
                 "semantic_validation": {
                     "is_consistent": validation_result["is_consistent"],
-                    "alignment_score": round(validation_result["alignment_score"], 4),
+                    "alignment_score": float(validation_result["alignment_score"]),
                     "verdict": validation_result["verdict"],
-                    "confidence_adjustment_factor": round(validation_result["confidence_adjustment"], 3)
+                    "confidence_adjustment_factor": float(validation_result["confidence_adjustment"])
                 }
             }
         }
@@ -501,13 +531,22 @@ async def classify_open_ended(
             f"using {model_used}. Detected {len(objects)} objects in {inference_time:.2f}s"
         )
         
+        # Ensure all values are JSON serializable
+        response = ensure_json_serializable(response)
         return response
         
     except Exception as e:
         logger.error(f"Open-ended classification error: {e}", exc_info=True)
+        import traceback
+        error_detail = traceback.format_exc()
+        logger.error(f"Full traceback:\n{error_detail}")
         return JSONResponse(
             status_code=500,
-            content={"error": str(e), "detail": "Internal server error during classification"}
+            content={
+                "error": str(e),
+                "detail": "Internal server error during classification",
+                "traceback": error_detail if True else None  # Set to False in production
+            }
         )
 
 
