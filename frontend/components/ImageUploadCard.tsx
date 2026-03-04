@@ -58,7 +58,7 @@ export default function ImageUploadCard({
     }
 
     onImageUpload(file)
-    
+
     // Create preview
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -89,7 +89,7 @@ export default function ImageUploadCard({
       <CardContent className="p-0 h-full w-full">
         <div
           className={cn(
-            "relative border-2 border-dashed rounded-xl h-full w-full flex flex-col items-center justify-center transition-all duration-300",
+            "relative border border-dashed rounded-xl h-full w-full flex flex-col items-center justify-center transition-all duration-300",
             dragActive ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-950/40 scale-[1.02]" : "border-blue-200 dark:border-blue-900",
             disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30",
             preview || imagePreview ? "p-4" : "p-8"
@@ -108,14 +108,14 @@ export default function ImageUploadCard({
             className="hidden"
             disabled={disabled}
           />
-          
+
           {preview || imagePreview ? (
             <div className="space-y-3 w-full flex flex-col items-center pointer-events-none">
               <div className="relative w-full flex justify-center">
                 <img
                   src={imagePreview || preview || ''}
                   alt="Preview"
-                  className="max-w-full max-h-40 object-contain rounded-lg shadow-md"
+                  className="max-w-full max-h-32 object-contain rounded-lg shadow-md"
                 />
                 <Button
                   variant="destructive"
@@ -129,9 +129,11 @@ export default function ImageUploadCard({
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-sm text-gray-700 dark:text-gray-300 text-center font-medium truncate px-4 max-w-full pointer-events-none">
-                {selectedImage?.name || 'Image uploaded'}
-              </p>
+              <div className="w-full px-4 overflow-hidden">
+                <p className="text-sm text-gray-700 dark:text-gray-300 text-center font-medium truncate max-w-64 mx-auto pointer-events-none">
+                  {selectedImage?.name || 'Image uploaded'}
+                </p>
+              </div>
             </div>
           ) : (
             <div className="text-center space-y-2">

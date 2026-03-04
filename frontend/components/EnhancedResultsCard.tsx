@@ -12,7 +12,8 @@ import {
   Download,
   RefreshCw,
   Plus,
-  X
+  X,
+  Brain
 } from "lucide-react"
 import { useState } from "react"
 import { ResultCardData } from "@/types"

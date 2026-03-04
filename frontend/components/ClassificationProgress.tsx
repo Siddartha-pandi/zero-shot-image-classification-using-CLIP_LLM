@@ -29,7 +29,7 @@ export default function ClassificationProgress({
   const totalSteps = steps.length
 
   return (
-    <Card className="h-3/4 shadow-lg border-2 border-blue-300 dark:border-blue-700 bg-linear-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
+    <Card className="h-3/4 shadow-lg border border-blue-300 dark:border-blue-700 bg-linear-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
       <CardContent className="pt-4 pb-4 px-6">
         <div className="space-y-3">
           {/* Header with overall progress */}
@@ -65,7 +65,7 @@ export default function ClassificationProgress({
                 <div key={step.id} className="flex flex-col items-center text-center">
                   {/* Step Icon */}
                   <div className={cn(
-                    "relative z-10 w-12 h-12 rounded-full flex items-center justify-center border-4 transition-all duration-300 shadow-lg",
+                    "relative z-10 w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-300 shadow-lg",
                     step.status === 'completed' && "bg-black border-black dark:bg-white dark:border-white",
                     step.status === 'in-progress' && "bg-gray-600 border-gray-600 animate-pulse dark:bg-gray-400 dark:border-gray-400",
                     step.status === 'error' && "bg-black border-black dark:bg-white dark:border-white",

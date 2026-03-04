@@ -158,7 +158,7 @@ export default function ClassManager() {
                   key={domain.value}
                   onClick={() => setSelectedDomain(domain.value)}
                   disabled={isLoading}
-                  className={`p-3 text-left rounded-lg border-2 transition-all ${
+                  className={`p-3 text-left rounded-lg border transition-all ${
                     selectedDomain === domain.value
                       ? 'border-blue-500 dark:border-blue-400 bg-blue-100 dark:bg-blue-900/40'
                       : 'border-blue-200 dark:border-blue-800 hover:border-blue-400'

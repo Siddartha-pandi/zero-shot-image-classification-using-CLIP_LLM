@@ -315,10 +315,10 @@ export default function EvaluatePage() {
                       <AlertCircle className="h-5 w-5 text-red-500" />
                     )}
                     {item.status === 'processing' && (
-                      <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+                      <div className="animate-spin h-5 w-5 border border-primary border-t-transparent rounded-full" />
                     )}
                     {(!item.status || item.status === 'pending') && (
-                      <div className="h-5 w-5 rounded-full border-2 border-muted-foreground" />
+                      <div className="h-5 w-5 rounded-full border border-muted-foreground" />
                     )}
                   </div>
 
@@ -374,7 +374,7 @@ export default function EvaluatePage() {
           >
             {isLoading ? (
               <>
-                <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />
+                <div className="animate-spin h-4 w-4 border border-current border-t-transparent rounded-full mr-2" />
                 Evaluating {files.length} images...
               </>
             ) : (
