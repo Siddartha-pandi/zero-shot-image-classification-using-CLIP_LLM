@@ -19,7 +19,22 @@ def generate_explanation(
     """Generate comprehensive explanation using LLM with CLIP-based visual feature verification"""
     confidence_pct = int(confidence * 100)
     
-    prompt = f"""You are an expert image analyst explaining a model's classification.
+    # Domain-specific examples and guidance
+    domain_context = ""
+    example_explanation = ""
+    
+    if domain.lower() == "vegetable":
+        domain_context = "in the vegetable/produce domain"
+        example_explanation = """EXAMPLE 1 (fresh vegetable - 90 words):
+"The image shows fresh cauliflower with tightly clustered white curds surrounded by green leafy bracts. The compact head structure, characteristic pale color, and dense arrangement are distinctive features of cauliflower. These visual elements match the botanical structure of Brassica oleracea var. botrytis. The florets and tight clustering clearly differentiate it from similar vegetables. The classification system confidently identifies this as cauliflower within the vegetable domain with 92% confidence based on these morphological characteristics."
+
+EXAMPLE 2 (store display - 88 words):
+"The image shows a supermarket produce section with organized fresh vegetable displays including bell peppers in red, yellow, and green. Multiple rows of vegetables are arranged on illuminated shelves with visible price labels, indicating a retail grocery environment. The organized spacing, store fixtures, and commercial display presentation are characteristic of supermarket produce sections. The classification system identifies this as a vegetable display with 90% confidence based on the commercial retail setup and organized produce arrangement."""
+    else:
+        example_explanation = """EXAMPLE (general classification - 86 words):
+"The image shows a specific subject with distinctive visual characteristics. The structure, color patterns, and shape are identifiable features of the classified category. These visual elements demonstrate clear alignment with known characteristics of {prediction}. The spatial relationships and proportional attributes further support this classification. The {model_used} model processes these combined visual features and determines this identification with {confidence_pct}% confidence, reflecting strong alignment between observed characteristics and expected patterns."""
+    
+    prompt = f"""You are an expert image analyst explaining a model's classification {domain_context}.
 
 DATA:
 - Domain: {domain}
@@ -33,15 +48,15 @@ CRITICAL REQUIREMENTS:
 2. MINIMUM 50 WORDS - this is mandatory
 3. Professional technical tone
 4. Grounded in visual evidence from the caption
+5. Include specific visual features {domain_context}
 
 STRUCTURE (follow in order):
 1. Start by describing what the image shows (reference caption)
-2. List 2-3 specific visual features, colors, shapes, or patterns
-3. Explain how these features relate to {prediction}
+2. List 2-3 specific visual features, colors, shapes, patterns, or structural elements
+3. Explain how these features relate to {prediction} {domain_context}
 4. State the confidence level and classification
 
-EXAMPLE (86 words - this length is good):
-"The image shows a tall bird with distinctive pink and orange feathers, extremely long slender legs, and a curved neck. The beak has a characteristic downward bend with a dark tip, which is typical of flamingos. The bird is standing in shallow water, a common habitat for flamingos where they feed on small aquatic organisms. These visual features match well-known characteristics of flamingo species, allowing the system to confidently classify the image as a flamingo within the animal domain."
+{example_explanation}
 
 Write your explanation now (minimum 50 words, one paragraph):
 """
