@@ -9,6 +9,16 @@
           "a pink flaming standing in a body of water",
           "a pink flaming standing in a body of water"
         ]
+      },
+      "bird": {
+        "support": 5,
+        "captions": [
+          "a small blue bird perched on a rock",
+          "a small blue bird perched on a rock",
+          "a small blue bird perched on a rock",
+          "a small blue bird perched on a rock",
+          "a small blue bird perched on a rock"
+        ]
       }
     }
   },
