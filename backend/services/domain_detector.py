@@ -6,6 +6,8 @@ import logging
 import base64
 import io
 import json
+import time
+import re
 
 from config import DOMAINS, DOMAIN_PROMPTS
 from models.clip_model import get_vith14_model
@@ -17,6 +19,20 @@ class DomainDetector:
     def __init__(self):
         self.clip = get_vith14_model()
         self.llm = get_llm_model()
+        self._llm_retry_after_ts = 0.0
+        self._llm_cooldown_seconds = 300
+
+    @staticmethod
+    def _is_quota_or_rate_limit_error(error: Exception) -> bool:
+        message = str(error).lower()
+        code = getattr(error, "code", None)
+        return (
+            code == 429
+            or "429" in message
+            or "resource_exhausted" in message
+            or "rate limit" in message
+            or "quota" in message
+        )
 
     def _get_llm_domain_prediction(self, image: Image.Image) -> Optional[Tuple[str, float]]:
         """
@@ -25,6 +41,10 @@ class DomainDetector:
         """
         try:
             if self.llm.model is None:
+                return None
+
+            now = time.time()
+            if now < self._llm_retry_after_ts:
                 return None
             
             # Prepare image for Gemini
@@ -54,16 +74,34 @@ Be precise and choose only from the available domains."""
                 generation_config=types.GenerationConfig(temperature=0.2, max_output_tokens=200)
             )
             
-            # Parse JSON response
+            # Parse JSON response with robust handling
             result_text = response.text.strip()
-            # Remove markdown code blocks if present
-            if result_text.startswith("```"):
-                result_text = result_text.split("```")[1]
-                if result_text.startswith("json"):
-                    result_text = result_text[4:]
+            
+            # Try to extract JSON from markdown code blocks
+            json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', result_text, re.DOTALL)
+            if json_match:
+                result_text = json_match.group(1)
+            elif result_text.startswith("```"):
+                # Fallback: remove code block markers manually
+                parts = result_text.split("```")
+                if len(parts) >= 2:
+                    result_text = parts[1]
+                    if result_text.startswith("json"):
+                        result_text = result_text[4:]
                 result_text = result_text.strip()
             
-            result = json.loads(result_text)
+            # Extract JSON if wrapped in extra text
+            if not result_text.startswith("{"):
+                brace_match = re.search(r'\{.*\}', result_text, re.DOTALL)
+                if brace_match:
+                    result_text = brace_match.group(0)
+            
+            try:
+                result = json.loads(result_text)
+            except json.JSONDecodeError as je:
+                logger.warning(f"Failed to parse LLM JSON response. Error: {je}. Raw response: {result_text[:200]}")
+                return None
+            
             predicted_domain = result.get("domain", "").lower()
             llm_confidence = float(result.get("confidence", 0.5))
             reasoning = result.get("reasoning", "")
@@ -77,6 +115,15 @@ Be precise and choose only from the available domains."""
                 return None
                 
         except Exception as e:
+            if self._is_quota_or_rate_limit_error(e):
+                self._llm_retry_after_ts = time.time() + self._llm_cooldown_seconds
+                logger.warning(
+                    "LLM domain prediction rate-limited/quota-exhausted. "
+                    "Using CLIP-only detection for %.0f seconds.",
+                    self._llm_cooldown_seconds,
+                )
+                return None
+
             logger.warning(f"LLM domain prediction failed: {e}")
             return None
 

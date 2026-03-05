@@ -54,16 +54,37 @@ class ViTH14Model:
     def get_prompt_ensembles(self, label: str) -> List[str]:
         label_lower = label.lower()
         
-        # Industrial-specific prompts for better detection
-        if any(term in label_lower for term in ['weld', 'welding', 'metal', 'industrial', 'machinery', 'corrosion', 'rust']):
+        # IMPROVED: Industrial-specific prompts with very strong semantic distinction
+        if any(term in label_lower for term in ['weld crack', 'fatigue crack', 'metal crack', 'structural crack']):
+            # CRITICAL: Weld/fatigue crack prompts - maximize semantic clarity vs wood/natural textures
             return [
-                f"a photo of {label}",
-                f"an image of {label}",
-                f"a close-up of {label}",
-                f"industrial {label}",
-                f"{label} on metal surface"
+                "industrial metal weld crack defect",
+                "fractured steel weld joint with rust",
+                "metal fatigue crack near weld seam",
+                "damaged welded metal surface with fracture",
+                "steel weld bead crack and corrosion",
+                "structural metal fracture in welded joint",
+                "cracked weld defect on steel plate",
+                "welded steel showing fatigue failure",
+                "metal crack propagating from weld seam",
+                "corroded fractured weld joint on metal",
+            ]
+        elif any(term in label_lower for term in ['weld', 'welding', 'metal', 'industrial', 'machinery', 'corrosion', 'rust', 'fracture']):
+            # STRONG: General industrial prompts with high semantic specificity
+            return [
+                f"industrial metal {label}",
+                f"close-up of {label} on steel surface",
+                f"macro photography of {label}",
+                f"detailed inspection image of {label}",
+                f"high resolution {label} documentation",
+                f"quality control image showing {label}",
+                f"magnified view of {label}",
+                f"structural engineering {label}",
+                f"industrial defect{label[:1] if label[0].isupper() else ''} image",
+                f"metal surface {label}"
             ]
         else:
+            # Standard CLIP prompts for non-industrial domains
             return [
                 f"a photo of a {label}",
                 f"an image of a {label}",
