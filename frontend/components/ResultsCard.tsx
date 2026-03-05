@@ -23,6 +23,7 @@ interface ResultsCardProps {
       similarity_score?: number
     }
     visual_features?: string[]
+    objects?: Array<{ name: string; score: number }>
     domain_info?: {
       domain: string
       confidence: number
@@ -242,7 +243,25 @@ export default function ResultsCard({ results, imagePreview }: ResultsCardProps)
           </div>
         )}
 
-
+        {/* Detected Objects */}
+        {results.objects && results.objects.length > 0 && (
+          <div>
+            <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+              Detected objects:
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {[...results.objects].sort((a, b) => b.score - a.score).map((obj, idx) => (
+                <Badge
+                  key={`${obj.name}-${idx}`}
+                  variant="outline"
+                  className="capitalize border-gray-300 dark:border-gray-700"
+                >
+                  {obj.name.replace(/_/g, ' ')}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Additional Details (Collapsible) - Hidden */}
         {results.reasoning_chain && (

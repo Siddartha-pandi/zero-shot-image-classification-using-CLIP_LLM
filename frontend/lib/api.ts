@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios'
 import type { ClassificationResult, AddClassResponse } from '@/types'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+const API_TIMEOUT_MS = Number(process.env.NEXT_PUBLIC_API_TIMEOUT_MS) || 180000
 
 class APIClient {
   private client: AxiosInstance
@@ -9,7 +10,8 @@ class APIClient {
   constructor() {
     this.client = axios.create({
       baseURL: BACKEND_URL,
-      timeout: 60000, // 60 second timeout for inference
+      // Inference/evaluation can take longer than 60s on CPU-bound runs.
+      timeout: API_TIMEOUT_MS,
     })
   }
 
