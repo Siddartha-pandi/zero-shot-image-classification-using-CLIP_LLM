@@ -20,10 +20,10 @@ DOMAIN_PROMPTS: Dict[str, str] = {
     "animal": "an image of an animal, wildlife, or pet",
     "industrial": "an image of industrial machinery, welding, metalwork, manufacturing, factory equipment, or mechanical component",
     "medical": "a medical radiology image such as x-ray, MRI, or CT scan",
-    "vegetable": "an image of a vegetable, plant, or crop",
+    "vegetable": "an image of fresh vegetables, crops, harvested produce, or agricultural products",
     "vehicle": "an image of a vehicle, car, truck, or traffic scene",
     "satellite image": "a satellite or aerial top view image",
-    "food": "an image of food, meal, or dish",
+    "food": "an image of food, meal, dish, or fresh produce items",
     "fashion item": "an image of clothing, fashion item, or apparel"
 }
 
@@ -87,26 +87,54 @@ BASE_CLASSES: Dict[str, List[str]] = {
     ],
     "vegetable": [
         "vegetable", "fresh vegetable", "organic vegetable", "seasonal vegetable",
+        # Generic categories
+        "vegetable", "fresh vegetable", "organic vegetable", "seasonal vegetable",
         "leafy green", "root vegetable", "cruciferous vegetable", "allium vegetable",
         "legume vegetable", "gourd vegetable", "stem vegetable", "bulb vegetable",
-        "spinach", "lettuce", "kale", "cabbage", "napa cabbage", "bok choy",
-        "swiss chard", "collard greens", "arugula", "mustard greens", "romaine lettuce",
-        "iceberg lettuce", "endive", "watercress", "moringa leaves",
-        "broccoli", "cauliflower", "brussels sprouts", "broccolini", "kohlrabi",
-        "radish", "turnip", "rutabaga",
-        "carrot", "beetroot", "parsnip", "sweet potato", "potato", "yam",
+        
+        # Display and retail context
+        "vegetable display", "fresh vegetables display", "produce display", "grocery produce",
+        "vegetables in store", "supermarket vegetables", "farmers market vegetables",
+        "organized vegetables", "vegetable arrangement", "produce section", "vegetable shelf",
+        "fresh vegetables on shelf", "grocery shelf vegetables", "retail vegetable display",
+        
+        # Leafy and green vegetables
+        "spinach", "lettuce", "kale", "cabbage", "green cabbage", "fresh cabbage",
+        "napa cabbage", "bok choy", "swiss chard", "collard greens", "arugula",
+        "mustard greens", "romaine lettuce", "iceberg lettuce", "endive", "watercress",
+        "moringa leaves", "fresh greens", "salad greens",
+        
+        # Cruciferous vegetables
+        "broccoli", "cauliflower", "fresh cauliflower", "white cauliflower",
+        "brussels sprouts", "broccolini", "kohlrabi",
+        
+        # Root vegetables
+        "carrot", "fresh carrot", "orange carrot", "carrots bunch",
+        "beetroot", "parsnip", "sweet potato", "potato", "potatoes", "fresh potato",
         "cassava", "taro", "celeriac", "jicama", "daikon", "ginger", "turmeric",
-        "onion", "red onion", "white onion", "green onion", "scallion", "leek",
-        "shallot", "garlic", "chive",
-        "tomato", "eggplant", "bell pepper", "capsicum", "chili pepper", "jalapeno",
-        "okra", "zucchini", "cucumber", "pumpkin", "bottle gourd", "ridge gourd",
-        "bitter gourd", "snake gourd", "ash gourd", "sponge gourd",
+        "radish", "turnip", "rutabaga",
+        
+        # Allium vegetables (onion family)
+        "onion", "red onion", "white onion", "yellow onion", "green onion", "scallion",
+        "leek", "shallot", "garlic", "chive",
+        
+        # Gourd and cucurbit vegetables
+        "cucumber", "fresh cucumber", "cucumbers",
+        "pumpkin", "pumpkins", "winter squash", "squash",
+        "bottle gourd", "ridge gourd", "bitter gourd", "snake gourd",
+        "ash gourd", "sponge gourd", "zucchini", "okra",
+        
+        # Fruiting vegetables
+        "tomato", "eggplant", "bell pepper", "bell peppers", "red pepper", "yellow pepper", "green pepper",
+        "capsicum", "mixed peppers", "peppers in store", "chili pepper", "jalapeno",
         "green beans", "french beans", "runner beans", "broad beans", "peas",
         "snow peas", "sugar snap peas", "edamame", "lima beans",
+        
+        # Stem and specialty vegetables
         "celery", "asparagus", "artichoke", "fennel", "banana stem", "lotus stem",
-        "drumstick", "ivy gourd", "cluster beans", "amaranth leaves", "fenugreek leaves",
-        "plantain", "raw banana", "green papaya", "chayote", "pointed gourd",
-        "tindora", "chow chow",
+        "drumstick", "ivy gourd", "cluster beans", "amaranth leaves",
+        "fenugreek leaves", "plantain", "raw banana", "green papaya",
+        "chayote", "pointed gourd", "tindora", "chow chow",
     ],
     "animal": [
         "dog", "cat", "bird", "wildlife", "mammal", "reptile", "animal",
@@ -235,9 +263,12 @@ DOMAIN_PROMPT_TEMPLATES: Dict[str, List[str]] = {
     "vegetable": [
         "a fresh organic {label}",
         "raw {label} used for cooking",
-        "a vegetable from a grocery market",
-        "a vegetable used in cooking",
-        "a fresh farm vegetable",
+        "a {label} from a grocery market",
+        "a fresh farm {label}",
+        "a {label} on display in supermarket",
+        "a {label} on retail shelves",
+        "organized fresh {label}",
+        "a {label} in a produce section",
     ],
     "food": [
         "fresh {label} used for cooking",

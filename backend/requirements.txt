@@ -11,4 +11,5 @@ transformers
 sentencepiece
 python-dotenv
 google-generativeai
+openai
 psutil

@@ -2,8 +2,6 @@
 import torch
 from PIL import Image
 import logging
-import base64
-import io
 
 from models.blip_model import get_blip_model
 from models.llm_model import get_llm_model
@@ -12,16 +10,11 @@ from models.model_cache import DEVICE
 logger = logging.getLogger(__name__)
 
 def _generate_llm_caption(img: Image.Image, domain: str = "unknown") -> str:
-    """Generate caption using Gemini Vision LLM with domain conditioning"""
+    """Generate caption using configured LLM vision provider with domain conditioning."""
     try:
         llm = get_llm_model()
-        if llm.model is None:
+        if not llm.is_available():
             return None
-        
-        # Prepare image for Gemini
-        buffered = io.BytesIO()
-        img.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
         
         # CRITICAL: Domain conditioning to prevent cross-domain confusion
         domain_instructions = ""
@@ -32,8 +25,14 @@ IGNORE: wood, natural textures, plants, animals, organic materials.
 For this industrial image, describe metal defects, fractures, and corrosion exclusively."""
         elif domain.lower() == "medical":
             domain_instructions = """Analyze this MEDICAL IMAGE ONLY. Focus on radiological findings. Ignore non-medical content."""
+        elif domain.lower() == "vegetable":
+            domain_instructions = """Analyze this VEGETABLE/PRODUCE IMAGE. Focus on vegetables, crops, and agricultural produce.
+Can be: fresh vegetables, harvested produce, vegetables on display in stores, retail produce sections.
+Describe: vegetable types, colors, shapes, leaf textures, condition (fresh vs aged), arrangement, and visible characteristics.
+Include specific features: florets (broccoli/cauliflower), leafiness (cabbage/lettuce), root structure (carrots), roundness (pumpkin), store/shelf context."""
         elif domain.lower() == "food":
-            domain_instructions = """Analyze this FOOD IMAGE ONLY. Focus on dishes, ingredients, and food items. Ignore other content."""
+            domain_instructions = """Analyze this FOOD IMAGE. Focus on dishes, ingredients, and food items.
+Describe: food type, color, texture, plating style, ingredients visible, cooking method (raw/cooked), presentation."""
         else:
             domain_instructions = "Provide accurate description specific to this domain."
         
@@ -43,13 +42,7 @@ Provide a concise, factual description of this image in one sentence (max 15 wor
 Focus on the main subject, its key visual features, and context. Be specific and precise.
 Do not use phrases like 'the image shows' or 'this is'. Just describe what you see."""
         
-        from google.generativeai import types
-        response = llm.model.generate_content(
-            [prompt, {"mime_type": "image/png", "data": img_str}],
-            generation_config=types.GenerationConfig(temperature=0.3, max_output_tokens=50)
-        )
-        
-        caption = response.text.strip()
+        caption = llm.generate_vision(prompt=prompt, image=img, temperature=0.3, max_tokens=50)
         logger.info(f"LLM caption ({domain}): {caption}")
         return caption
     except Exception as e:

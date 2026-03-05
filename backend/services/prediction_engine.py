@@ -16,8 +16,6 @@ from services.llm_auto_tuner import get_llm_auto_tuner
 from models.clip_model import get_vith14_model
 from models.medclip_model import get_medclip_model
 from models.llm_model import get_llm_model
-import base64
-import io
 import json
 import re
 
@@ -37,15 +35,10 @@ class PredictionEngine:
         """Use LLM vision to validate and boost CLIP predictions for higher confidence"""
         import time
         now = time.time()
-        if now < self._llm_retry_after_ts or self.llm.model is None:
+        if now < self._llm_retry_after_ts or not self.llm.is_available():
             return {}
         
         try:
-            # Prepare image
-            buffered = io.BytesIO()
-            image.save(buffered, format="PNG")
-            img_str = base64.b64encode(buffered.getvalue()).decode()
-            
             # Get top candidate labels
             candidates = [p['label'] for p in top_predictions[:5]]
             candidates_str = ", ".join(candidates)
@@ -66,14 +59,13 @@ Provide confidence adjustments as JSON:
 }}
 
 Only adjust by -0.20 to +0.20. Base on visual features you can see."""
-            
-            from google.generativeai import types
-            response = self.llm.model.generate_content(
-                [prompt, {"mime_type": "image/png", "data": img_str}],
-                generation_config=types.GenerationConfig(temperature=0.2, max_output_tokens=150)
-            )
-            
-            result_text = response.text.strip()
+
+            result_text = self.llm.generate_vision(
+                prompt=prompt,
+                image=image,
+                temperature=0.2,
+                max_tokens=150,
+            ).strip()
             json_match = re.search(r'\{.*\}', result_text, re.DOTALL)
             if json_match:
                 result_text = json_match.group(0)

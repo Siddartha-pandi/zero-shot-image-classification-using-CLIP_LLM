@@ -3,8 +3,6 @@ import numpy as np
 from PIL import Image
 from typing import Tuple, Dict, Optional
 import logging
-import base64
-import io
 import json
 import time
 import re
@@ -40,17 +38,12 @@ class DomainDetector:
         Returns: (predicted_domain, confidence) or None if LLM not available
         """
         try:
-            if self.llm.model is None:
+            if not self.llm.is_available():
                 return None
 
             now = time.time()
             if now < self._llm_retry_after_ts:
                 return None
-            
-            # Prepare image for Gemini
-            buffered = io.BytesIO()
-            image.save(buffered, format="PNG")
-            img_str = base64.b64encode(buffered.getvalue()).decode()
             
             # Create prompt for domain detection
             domain_list = ", ".join(DOMAINS)
@@ -67,15 +60,13 @@ Provide your answer in JSON format with exactly this structure:
 
 Be precise and choose only from the available domains."""
 
-            # Generate with vision model
-            from google.generativeai import types
-            response = self.llm.model.generate_content(
-                [prompt, {"mime_type": "image/png", "data": img_str}],
-                generation_config=types.GenerationConfig(temperature=0.2, max_output_tokens=200)
-            )
-            
             # Parse JSON response with robust handling
-            result_text = response.text.strip()
+            result_text = self.llm.generate_vision(
+                prompt=prompt,
+                image=image,
+                temperature=0.2,
+                max_tokens=200,
+            ).strip()
             
             # Try to extract JSON from markdown code blocks
             json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', result_text, re.DOTALL)
