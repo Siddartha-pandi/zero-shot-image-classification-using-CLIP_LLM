@@ -29,24 +29,29 @@ async def classify_image(file: UploadFile = File(...)):
         contents = await file.read()
         image = process_image_bytes(contents)
 
-        # Generate caption before prediction so LLM auto-tuning can use it.
-        caption = generate_caption(image)
+        # IMPROVED: First detect domain for better caption generation
+        domain_detector = get_prediction_engine().domain_detector  # Get quick domain detection
+        domain, domain_conf, _ = domain_detector.detect_domain(image)
+        
+        # Generate caption with DOMAIN CONDITIONING to prevent cross-domain confusion
+        caption = generate_caption(image, domain=domain)
 
-        # Predict Domain and Classes
+        # Predict Domain and Classes with full pipeline
         engine = get_prediction_engine()
-        predictions, model_used, domain, domain_conf = engine.predict(image, top_k=3, caption=caption)
+        predictions, model_used, final_domain, domain_conf = engine.predict(image, top_k=3, caption=caption)
 
         top_pred_label = str(predictions[0]["label"]).title()
         top_pred_score = float(predictions[0]["score"])
 
-        # Generate LLM Explanation
+        # Generate LLM Explanation with CLIP verification
         explanation = generate_explanation(
-            domain=domain,
+            domain=final_domain,
             model_used=model_used,
             prediction=top_pred_label,
             confidence=top_pred_score,
             caption=caption,
-            top_matches=predictions
+            top_matches=predictions,
+            image=image
         )
 
         formatted_predictions = [
@@ -56,7 +61,7 @@ async def classify_image(file: UploadFile = File(...)):
 
         # Format and return strict JSON response
         return ClassificationResponse(
-            domain=domain.title(),
+            domain=final_domain.title(),
             model_used=model_used,
             prediction=top_pred_label,
             confidence=top_pred_score,

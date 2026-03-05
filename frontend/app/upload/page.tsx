@@ -449,7 +449,7 @@ export default function UploadPage() {
                       </div>
                       {/* Badge removed as requested */}
                     </div>
-                    <div className="mt-4">
+                    {/* <div className="mt-4">
                       <div className="flex justify-between text-sm mb-2">
                         <span className="text-gray-600 dark:text-gray-400">Confidence Score</span>
                         <span className="font-bold text-gray-900 dark:text-gray-100">
@@ -462,7 +462,7 @@ export default function UploadPage() {
                           style={{ width: `${(results.confidence ?? 0) * 100}%` }}
                         ></div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Domain Info */}

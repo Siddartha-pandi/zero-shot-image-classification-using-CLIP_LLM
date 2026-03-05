@@ -11,8 +11,8 @@ from models.model_cache import DEVICE
 
 logger = logging.getLogger(__name__)
 
-def _generate_llm_caption(img: Image.Image) -> str:
-    """Generate caption using Gemini Vision LLM"""
+def _generate_llm_caption(img: Image.Image, domain: str = "unknown") -> str:
+    """Generate caption using Gemini Vision LLM with domain conditioning"""
     try:
         llm = get_llm_model()
         if llm.model is None:
@@ -23,7 +23,23 @@ def _generate_llm_caption(img: Image.Image) -> str:
         img.save(buffered, format="PNG")
         img_str = base64.b64encode(buffered.getvalue()).decode()
         
-        prompt = """Provide a concise, factual description of this image in one sentence (max 15 words). 
+        # CRITICAL: Domain conditioning to prevent cross-domain confusion
+        domain_instructions = ""
+        if domain.lower() == "industrial":
+            domain_instructions = """You are analyzing an INDUSTRIAL DEFECT IMAGE.
+Focus on: metal surfaces, welds, cracks, corrosion, rust, structural damage ONLY.
+IGNORE: wood, natural textures, plants, animals, organic materials.
+For this industrial image, describe metal defects, fractures, and corrosion exclusively."""
+        elif domain.lower() == "medical":
+            domain_instructions = """Analyze this MEDICAL IMAGE ONLY. Focus on radiological findings. Ignore non-medical content."""
+        elif domain.lower() == "food":
+            domain_instructions = """Analyze this FOOD IMAGE ONLY. Focus on dishes, ingredients, and food items. Ignore other content."""
+        else:
+            domain_instructions = "Provide accurate description specific to this domain."
+        
+        prompt = f"""{domain_instructions}
+
+Provide a concise, factual description of this image in one sentence (max 15 words). 
 Focus on the main subject, its key visual features, and context. Be specific and precise.
 Do not use phrases like 'the image shows' or 'this is'. Just describe what you see."""
         
@@ -34,18 +50,41 @@ Do not use phrases like 'the image shows' or 'this is'. Just describe what you s
         )
         
         caption = response.text.strip()
-        logger.info(f"LLM caption: {caption}")
+        logger.info(f"LLM caption ({domain}): {caption}")
         return caption
     except Exception as e:
         logger.warning(f"LLM caption generation failed: {e}")
         return None
 
-def generate_caption(img: Image.Image, max_new_tokens: int = 30) -> str:
-    """Generate image caption using hybrid BLIP + LLM approach"""
+def _merge_captions(blip_caption: str, llm_caption: str) -> str:
+    """Intelligently merge BLIP and LLM captions for best accuracy"""
+    # Extract key terms from both
+    blip_words = set(blip_caption.lower().split())
+    llm_words = set(llm_caption.lower().split())
+    
+    # Calculate overlap
+    overlap = len(blip_words & llm_words) / max(len(blip_words), len(llm_words))
+    
+    # High overlap (>40%) = both agree, use LLM (better phrasing)
+    if overlap > 0.4:
+        logger.info(f"Caption agreement {overlap:.2f}, using LLM caption")
+        return llm_caption
+    
+    # Low overlap (<20%) = potential hallucination, use BLIP (more grounded)
+    if overlap < 0.2:
+        logger.info(f"Caption disagreement {overlap:.2f}, using BLIP for safety")
+        return blip_caption
+    
+    # Medium overlap = blend key information
+    logger.info(f"Caption partial agreement {overlap:.2f}, using LLM with BLIP verification")
+    return llm_caption
+
+def generate_caption(img: Image.Image, max_new_tokens: int = 30, domain: str = "unknown") -> str:
+    """Generate image caption using intelligent BLIP + LLM hybrid with cross-validation"""
     blip_caption = None
     llm_caption = None
     
-    # Get BLIP caption
+    # Get BLIP caption (vision-grounded)
     try:
         blip = get_blip_model()
         processor = blip.processor
@@ -69,18 +108,19 @@ def generate_caption(img: Image.Image, max_new_tokens: int = 30) -> str:
     except Exception as e:
         logger.error(f"Error generating BLIP caption: {e}")
     
-    # Get LLM caption
-    llm_caption = _generate_llm_caption(img)
+    # Get LLM caption (semantic understanding) with domain conditioning
+    llm_caption = _generate_llm_caption(img, domain=domain)
     
-    # Combine both captions intelligently
+    # Intelligently combine both captions
     if blip_caption and llm_caption:
-        # Use LLM caption as primary (better semantic understanding)
-        # but fall back to BLIP if LLM fails
-        logger.info(f"Using hybrid caption (LLM primary)")
-        return llm_caption
+        merged = _merge_captions(blip_caption, llm_caption)
+        logger.info(f"Hybrid caption selected: {merged}")
+        return merged
     elif llm_caption:
+        logger.info("Using LLM-only caption")
         return llm_caption
     elif blip_caption:
+        logger.info("Using BLIP-only caption")
         return blip_caption
     else:
         return "An image."

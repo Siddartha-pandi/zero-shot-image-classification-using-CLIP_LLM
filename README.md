@@ -34,12 +34,16 @@ Create `backend/.env` and add:
 
 ```env
 GEMINI_API_KEY=your_google_gemini_api_key
+GEMINI_MODEL=gemini-2.0-flash
 ENABLE_LLM_AUTO_TUNING=true
 ENABLE_SELF_LEARNING=true
 ENABLE_AUTO_SELF_LEARNING=true
 AUTO_SELF_LEARNING_THRESHOLD=0.80
 SELF_LEARNING_MIN_SUPPORT=2
 ```
+
+If you see errors like `model ... is not found for API version v1beta`, set `GEMINI_MODEL`
+to a model available in your Google project (for example `gemini-2.0-flash`).
 
 ### Frontend (`frontend/.env.local`)
 

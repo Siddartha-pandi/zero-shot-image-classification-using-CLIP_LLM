@@ -115,7 +115,7 @@ export default function HomePage() {
                 <h3 className="font-semibold text-black dark:text-white">Automatic Domain Detection</h3>
               </div>
               <p className="text-sm text-gray-800 dark:text-gray-200">
-                Detects image domain (medical, natural, sketch, etc.) and applies domain-specific model routing
+                Detects image domain (medical, natural, etc.) and applies domain-specific model routing
               </p>
             </div>
 
@@ -134,7 +134,7 @@ export default function HomePage() {
                 <h3 className="font-semibold text-black dark:text-white">LLM-Enhanced Reasoning</h3>
               </div>
               <p className="text-sm text-gray-800 dark:text-gray-200">
-                Gemini AI generates detailed natural language explanations for predictions and reasoning chains
+                 generates detailed natural language explanations for predictions and reasoning chains
               </p>
             </div>
 
@@ -172,22 +172,22 @@ export default function HomePage() {
               <h3 className="font-semibold text-black dark:text-white mb-3">Step-by-Step Workflow:</h3>
               <ol className="list-decimal list-inside space-y-3 text-sm text-gray-800 dark:text-gray-200">
                 <li><span className="font-medium">Upload Image</span> - Navigate to Upload & Classify and select your image (JPG, PNG, GIF)</li>
-                <li><span className="font-medium">Optional Classes</span> - Enter custom class labels or use auto-detection for zero-shot classification</li>
+                <li><span className="font-medium">Optional Classes</span> -  use auto-detection for zero-shot classification</li>
                 <li><span className="font-medium">Start Classification</span> - Click "Start Classification" to begin the adaptive pipeline</li>
                 <li><span className="font-medium">Automatic Domain Detection</span> - System analyzes and detects the image domain (medical, natural, etc.)</li>
                 <li><span className="font-medium">Model Routing</span> - Automatically selects MedCLIP for medical or ViT-H/14 for general domains</li>
                 <li><span className="font-medium">Visual Analysis</span> - Generates image caption via BLIP and extracts visual embeddings via CLIP</li>
                 <li><span className="font-medium">Predictions</span> - Gets top-K predictions with confidence scores and adaptive tuning</li>
-                <li><span className="font-medium">LLM Reasoning</span> - Gemini AI generates detailed explanations for the predictions</li>
+                <li><span className="font-medium">LLM Reasoning</span> - generates detailed explanations for the predictions</li>
                 <li><span className="font-medium">View Results</span> - See comprehensive results with validation metrics and domain insights</li>
               </ol>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-900/30 p-4 rounded-lg border border-gray-300 dark:border-gray-700">
+            {/* <div className="bg-gray-50 dark:bg-gray-900/30 p-4 rounded-lg border border-gray-300 dark:border-gray-700"> 
               <p className="text-sm text-gray-700 dark:text-gray-300">
                 <span className="font-semibold">💡 Tip:</span> The system works best with clear, well-lit images. Medical images will be processed with specialized models for higher accuracy.
               </p>
-            </div>
+             </div> */}
           </div>
         </CardContent>
       </Card>
