@@ -65,3 +65,10 @@ backend/pretrained/
 inputs/
 deliverables/
 *.zip
+
+# frontend build/cache
+frontend/node_modules/
+frontend/.next/
+
+# local reports
+disk_usage_report.txt
