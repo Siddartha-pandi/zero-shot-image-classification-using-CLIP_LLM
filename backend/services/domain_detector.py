@@ -7,7 +7,7 @@ import json
 import time
 import re
 
-from config import DOMAINS, DOMAIN_PROMPTS
+from config import DOMAINS, DOMAIN_PROMPTS, DOMAIN_CONFIDENCE_THRESHOLD
 from models.clip_model import get_vith14_model
 from models.llm_model import get_llm_model
 
@@ -104,7 +104,7 @@ Be precise and choose only from the available domains."""
             else:
                 logger.warning(f"LLM predicted invalid domain: {predicted_domain}")
                 return None
-                
+
         except Exception as e:
             if self._is_quota_or_rate_limit_error(e):
                 self._llm_retry_after_ts = time.time() + self._llm_cooldown_seconds
@@ -118,12 +118,106 @@ Be precise and choose only from the available domains."""
             logger.warning(f"LLM domain prediction failed: {e}")
             return None
 
-    def detect_domain(self, image: Image.Image) -> Tuple[str, float, Dict[str, float]]:
+    def _get_llm_domain_revalidation(self, image: Image.Image, initial_domain: str, clip_scores: Dict[str, float]) -> Optional[Tuple[str, float]]:
+        """
+        Explicit LLM revalidation when domain confidence is low.
+        Provides CLIP scores and asks LLM to validate/correct the initial domain prediction.
+        Returns: (validated_domain, confidence) or None if LLM not available
+        """
+        try:
+            if not self.llm.is_available():
+                return None
+
+            now = time.time()
+            if now < self._llm_retry_after_ts:
+                return None
+            
+            # Format CLIP scores for context
+            top_domains = sorted(clip_scores.items(), key=lambda x: x[1], reverse=True)[:3]
+            clip_context = ", ".join([f"{d}: {s:.2f}" for d, s in top_domains])
+            
+            domain_list = ", ".join(DOMAINS)
+            prompt = f"""You are revalidating an image domain classification with low initial confidence.
+
+Initial Domain Prediction: {initial_domain}
+Top CLIP Model Scores: {clip_context}
+Available Domains: {domain_list}
+
+Carefully analyze this image and validate or correct the initial domain prediction.
+If the initial domain seems wrong based on visual evidence, recommend the correct domain.
+
+Provide your answer in JSON format:
+{{
+    "validated_domain": "the most appropriate domain from the list",
+    "confidence": 0.85,
+    "validation_reasoning": "explain whether you confirm or correct the initial prediction and why"
+}}
+
+Be strict and only choose from the available domains."""
+
+            result_text = self.llm.generate_vision(
+                prompt=prompt,
+                image=image,
+                temperature=0.3,
+                max_tokens=250,
+            ).strip()
+            
+            # Extract JSON from markdown code blocks
+            json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', result_text, re.DOTALL)
+            if json_match:
+                result_text = json_match.group(1)
+            elif result_text.startswith("```"):
+                parts = result_text.split("```")
+                if len(parts) >= 2:
+                    result_text = parts[1]
+                    if result_text.startswith("json"):
+                        result_text = result_text[4:]
+                result_text = result_text.strip()
+            
+            if not result_text.startswith("{"):
+                brace_match = re.search(r'\{.*\}', result_text, re.DOTALL)
+                if brace_match:
+                    result_text = brace_match.group(0)
+            
+            try:
+                result = json.loads(result_text)
+            except json.JSONDecodeError as je:
+                logger.warning(f"Failed to parse LLM revalidation JSON. Error: {je}. Raw response: {result_text[:200]}")
+                return None
+            
+            validated_domain = result.get("validated_domain", "").lower()
+            validated_confidence = float(result.get("confidence", 0.5))
+            reasoning = result.get("validation_reasoning", "")
+            
+            # Validate revalidated domain
+            if validated_domain in DOMAIN_PROMPTS:
+                if validated_domain != initial_domain:
+                    logger.info(f"LLM revalidation corrected domain: {initial_domain} -> {validated_domain} (confidence: {validated_confidence:.3f}). Reason: {reasoning}")
+                else:
+                    logger.info(f"LLM revalidation confirmed domain: {validated_domain} (confidence: {validated_confidence:.3f})")
+                return validated_domain, validated_confidence
+            else:
+                logger.warning(f"LLM revalidation predicted invalid domain: {validated_domain}")
+                return None
+                
+        except Exception as e:
+            if self._is_quota_or_rate_limit_error(e):
+                self._llm_retry_after_ts = time.time() + self._llm_cooldown_seconds
+                logger.warning("LLM revalidation rate-limited/quota-exhausted.")
+                return None
+
+            logger.warning(f"LLM revalidation failed: {e}")
+            return None
+
+    def detect_domain(self, image: Image.Image, low_confidence_threshold: float = None) -> Tuple[str, float, Dict[str, float]]:
         """
         Dynamically detects the domain of the image using both CLIP and LLM.
         Combines both predictions for better accuracy.
+        If confidence is below threshold, explicitly re-queries LLM for validation.
         Returns: (best_domain, confidence_score, all_domain_scores)
         """
+        if low_confidence_threshold is None:
+            low_confidence_threshold = DOMAIN_CONFIDENCE_THRESHOLD
         # === CLIP-based Detection ===
         image_emb = self.clip.encode_image(image)
         
@@ -164,6 +258,15 @@ Be precise and choose only from the available domains."""
             confidence = combined_scores[best_domain]
             
             logger.info(f"Hybrid domain detection: {best_domain} (confidence: {confidence:.3f}, CLIP: {clip_scores[best_domain]:.3f}, LLM: {llm_domain})")
+            
+            # === Low Confidence Fallback: Explicit LLM Validation ===
+            if confidence < low_confidence_threshold and self.llm.is_available():
+                logger.warning(f"Domain confidence {confidence:.3f} below threshold {low_confidence_threshold}. Requesting explicit LLM revalidation...")
+                revalidated_domain = self._get_llm_domain_revalidation(image, best_domain, clip_scores)
+                if revalidated_domain:
+                    best_domain, confidence = revalidated_domain
+                    logger.info(f"LLM revalidation adjusted domain to: {best_domain} (confidence: {confidence:.3f})")
+            
             return best_domain, confidence, combined_scores
         else:
             # Fallback to CLIP-only if LLM fails
@@ -172,6 +275,15 @@ Be precise and choose only from the available domains."""
             confidence = float(clip_similarities[top_idx])
             
             logger.info(f"CLIP-only domain detection: {best_domain} (confidence: {confidence:.3f})")
+            
+            # === Low Confidence Fallback: Explicit LLM Validation ===
+            if confidence < low_confidence_threshold and self.llm.is_available():
+                logger.warning(f"CLIP confidence {confidence:.3f} below threshold {low_confidence_threshold}. Requesting LLM domain validation...")
+                revalidated_domain = self._get_llm_domain_revalidation(image, best_domain, clip_scores)
+                if revalidated_domain:
+                    best_domain, confidence = revalidated_domain
+                    logger.info(f"LLM validation adjusted domain to: {best_domain} (confidence: {confidence:.3f})")
+            
             return best_domain, confidence, clip_scores
 
 _detector = None

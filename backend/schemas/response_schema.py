@@ -14,6 +14,7 @@ class ClassificationResponse(BaseModel):
     top_predictions: List[PredictionMatch]
     caption: str
     explanation: str
+    extracted_details: Optional[str] = None
 
     model_config = ConfigDict(protected_namespaces=())
 

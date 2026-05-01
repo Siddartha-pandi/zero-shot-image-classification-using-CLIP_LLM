@@ -5,6 +5,7 @@ from PIL import Image
 
 from config import (
     MEDICAL_THRESHOLD,
+    PREDICTION_LLM_REVALIDATION_THRESHOLD,
     BASE_CLASSES,
     BASE_PROMPT_TEMPLATES,
     DOMAIN_PROMPT_TEMPLATES,
@@ -82,6 +83,88 @@ Only adjust by -0.20 to +0.20. Base on visual features you can see."""
             else:
                 logger.warning(f"LLM prediction validation failed: {e}")
             return {}
+
+    def _get_llm_prediction_revalidation(self, image: Image.Image, predictions: List[Dict], caption: str, domain: str, top_k: int = 3) -> List[Dict]:
+        """Explicit LLM revalidation when prediction confidence is very low (<0.50).
+        LLM analyzes image directly and recommends the top predictions."""
+        import time
+        now = time.time()
+        if now < self._llm_retry_after_ts or not self.llm.is_available():
+            return predictions
+        
+        try:
+            available_labels = self.get_dynamic_labels_for_domain(domain)
+            labels_str = ", ".join(available_labels[:10])  # Show first 10 labels
+            
+            prompt = f"""You are revalidating image classification with very low initial confidence.
+
+Domain: {domain}
+Image Caption: "{caption}"
+Available Labels (sample): {labels_str}
+
+Analyze this image carefully and provide the top {top_k} most likely classification labels for this domain.
+Be specific and only choose labels from the domain's label space.
+
+Provide your answer as JSON:
+{{
+    "top_predictions": [
+        {{"label": "label1", "confidence": 0.45}},
+        {{"label": "label2", "confidence": 0.35}},
+        {{"label": "label3", "confidence": 0.20}}
+    ],
+    "reasoning": "brief explanation of visual evidence"
+}}
+
+Make sure confidences sum to ~1.0."""
+
+            result_text = self.llm.generate_vision(
+                prompt=prompt,
+                image=image,
+                temperature=0.1,  # Low temperature for precise predictions
+                max_tokens=300,
+            ).strip()
+            
+            # Extract JSON
+            json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', result_text, re.DOTALL)
+            if json_match:
+                result_text = json_match.group(1)
+            elif not result_text.startswith("{"):
+                brace_match = re.search(r'\{.*\}', result_text, re.DOTALL)
+                if brace_match:
+                    result_text = brace_match.group(0)
+            
+            result = json.loads(result_text)
+            llm_predictions_raw = result.get("top_predictions", [])
+            reasoning = result.get("reasoning", "")
+            
+            # Convert to standard prediction format
+            llm_predictions = []
+            for pred in llm_predictions_raw:
+                label = str(pred.get("label", "")).lower().strip()
+                confidence = float(pred.get("confidence", 0.0))
+                if label:
+                    llm_predictions.append({"label": label, "score": confidence})
+            
+            if llm_predictions:
+                # Normalize scores
+                total = sum(p["score"] for p in llm_predictions) or 1.0
+                for p in llm_predictions:
+                    p["score"] = float(p["score"] / total)
+                
+                logger.info(f"LLM revalidation provided predictions: {[p['label'] for p in llm_predictions]} - Reasoning: {reasoning}")
+                return llm_predictions
+            else:
+                logger.warning("LLM revalidation returned empty predictions")
+                return predictions
+                
+        except Exception as e:
+            error_msg = str(e)
+            if "429" in error_msg or "quota" in error_msg.lower():
+                self._llm_retry_after_ts = time.time() + self._llm_cooldown_seconds
+                logger.warning("LLM prediction revalidation rate-limited")
+            else:
+                logger.warning(f"LLM prediction revalidation failed: {e}")
+            return predictions
 
     def get_dynamic_labels_for_domain(self, domain: str) -> List[str]:
         # Base labels are centrally configured in backend/config.py
@@ -295,6 +378,23 @@ Only adjust by -0.20 to +0.20. Base on visual features you can see."""
                 )
             logger.info(f"Fallback improved score to {fallback_predictions[0]['score']:.2f} for {fallback_predictions[0]['label']}")
             predictions = fallback_predictions
+
+        # 5.2 Very Low Confidence: Explicit LLM Revalidation
+        if predictions and predictions[0]['score'] < PREDICTION_LLM_REVALIDATION_THRESHOLD and self.llm.is_available():
+            logger.warning(f"Prediction confidence {predictions[0]['score']:.2f} < 0.50. Requesting explicit LLM revalidation...")
+            llm_revalidated = self._get_llm_prediction_revalidation(
+                image=image,
+                predictions=predictions,
+                caption=caption,
+                domain=domain,
+                top_k=top_k
+            )
+            if llm_revalidated and llm_revalidated[0]['score'] > predictions[0]['score']:
+                logger.info(f"LLM revalidation improved top prediction: {predictions[0]['label']} ({predictions[0]['score']:.3f}) -> {llm_revalidated[0]['label']} ({llm_revalidated[0]['score']:.3f})")
+                predictions = llm_revalidated
+            elif llm_revalidated:
+                logger.info(f"LLM revalidation provided alternative prediction: {llm_revalidated[0]['label']} ({llm_revalidated[0]['score']:.3f})")
+                predictions = llm_revalidated
 
         # 5.5 Apply LLM visual validation for extra confidence
         if predictions and caption:

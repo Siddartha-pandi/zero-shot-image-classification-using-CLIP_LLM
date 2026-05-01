@@ -3,6 +3,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 import logging
 
 from utils.image_preprocessor import process_image_bytes
+from utils.text_extractor import extract_and_parse_document_details
 from services.prediction_engine import get_prediction_engine
 from services.caption_generator import generate_caption
 from services.explanation_generator import generate_explanation
@@ -23,11 +24,22 @@ async def classify_image(file: UploadFile = File(...)):
     """
     Classify an uploaded image across dynamic domains using a modular 
     pipeline of domain detection, classification, captioning, and explanation.
+    Includes OCR text extraction for documents (ID cards, invoices, etc.)
     """
     try:
         # Preprocess Image
         contents = await file.read()
         image = process_image_bytes(contents)
+
+        # Extract text details from image if available (for documents, IDs, etc.)
+        extracted_details = None
+        try:
+            detail_result = extract_and_parse_document_details(image)
+            if detail_result.get("formatted"):
+                extracted_details = detail_result["formatted"]
+                logger.info(f"Extracted document details: {extracted_details}")
+        except Exception as e:
+            logger.debug(f"Could not extract document details: {e}")
 
         # IMPROVED: First detect domain for better caption generation
         domain_detector = get_prediction_engine().domain_detector  # Get quick domain detection
@@ -43,7 +55,7 @@ async def classify_image(file: UploadFile = File(...)):
         top_pred_label = str(predictions[0]["label"]).title()
         top_pred_score = float(predictions[0]["score"])
 
-        # Generate LLM Explanation with CLIP verification
+        # Generate LLM Explanation with CLIP verification (includes extracted details if available)
         explanation = generate_explanation(
             domain=final_domain,
             model_used=model_used,
@@ -67,7 +79,8 @@ async def classify_image(file: UploadFile = File(...)):
             confidence=top_pred_score,
             top_predictions=formatted_predictions,
             caption=caption,
-            explanation=explanation
+            explanation=explanation,
+            extracted_details=extracted_details
         )
 
     except Exception as e:

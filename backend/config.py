@@ -5,6 +5,7 @@ from typing import Dict, List
 # We can easily add new domains here without changing model logic
 
 DOMAINS: List[str] = [
+    "person",
     "animal",
     "industrial",
     "medical",
@@ -17,6 +18,7 @@ DOMAINS: List[str] = [
 
 # Keywords for text embedding when matching domain
 DOMAIN_PROMPTS: Dict[str, str] = {
+    "person": "an image of a person, human face, or people",
     "animal": "an image of an animal, wildlife, or pet",
     "industrial": "an image of industrial machinery, welding, metalwork, manufacturing, factory equipment, or mechanical component",
     "medical": "a medical radiology image such as x-ray, MRI, or CT scan",
@@ -29,6 +31,38 @@ DOMAIN_PROMPTS: Dict[str, str] = {
 
 # Domain-to-label base classes used by zero-shot prediction.
 BASE_CLASSES: Dict[str, List[str]] = {
+    "person": [
+        # Generic person categories
+        "person", "human", "people", "man", "woman", "child", "adult", "young person",
+        
+        # Age groups
+        "infant", "baby", "toddler", "kid", "teenager", "young adult", "middle-aged person", "elderly person", "senior",
+        
+        # Professions and roles
+        "doctor", "nurse", "engineer", "teacher", "student", "businessman", "athlete", "artist",
+        "musician", "actor", "chef", "worker", "laborer", "professional",
+        
+        # Appearance and characteristics
+        "person with short hair", "person with long hair", "bald person", "person with glasses",
+        "person with beard", "person wearing hat", "person wearing glasses", "person in formal wear",
+        "person in casual wear", "person in sports wear", "person in traditional dress",
+        
+        # Expression and pose
+        "smiling person", "person with neutral expression", "person with sad expression",
+        "standing person", "sitting person", "running person", "jumping person",
+        "person raising hand", "person pointing", "person waving",
+        
+        # Clothing
+        "person in black shirt", "person in white shirt", "person in red dress",
+        "person in jeans", "person in suit", "person in uniform", "person in swimwear",
+        
+        # Group settings
+        "single person", "two people", "group of people", "family", "couple",
+        "person in crowd", "person in outdoor setting", "person in indoor setting",
+        
+        # Context
+        "portrait", "selfie", "group photo", "full body shot", "headshot", "body shot",
+    ],
     "medical": [
         "chest x-ray", "normal chest x-ray", "radiology image", "MRI scan", "CT scan", "brain MRI",
         "fundus image", "retinal photograph", "ophthalmology", "optic disc",
@@ -260,6 +294,16 @@ BASE_PROMPT_TEMPLATES: List[str] = [
 
 # Domain-level prompt enrichments appended for labels in the corresponding domain.
 DOMAIN_PROMPT_TEMPLATES: Dict[str, List[str]] = {
+    "person": [
+        "a portrait of a {label}",
+        "a professional photo of a {label}",
+        "a clear photo of a {label}",
+        "a close-up portrait of a {label}",
+        "a detailed photo showing a {label}",
+        "an outdoor photo of a {label}",
+        "an indoor photo of a {label}",
+        "a candid photo of a {label}",
+    ],
     "vegetable": [
         "a fresh organic {label}",
         "raw {label} used for cooking",
@@ -580,3 +624,14 @@ KEYWORD_LABEL_PROMPTS: Dict[str, Dict[str, List[str]]] = {
 # Thresholds
 MEDICAL_THRESHOLD = 0.08
 TRAFFIC_THRESHOLD = 0.35
+
+# LLM Validation Thresholds
+# Domain detection uses LLM revalidation when confidence < this threshold
+DOMAIN_CONFIDENCE_THRESHOLD = 0.55
+
+# Prediction confidence uses LLM revalidation when confidence < this threshold  
+# 0.55 = first fallback (expanded prompts), 0.50 = explicit LLM revalidation
+PREDICTION_LLM_REVALIDATION_THRESHOLD = 0.50
+
+# LLM revalidation cooldown (seconds) after rate limit errors
+LLM_REVALIDATION_COOLDOWN = 300

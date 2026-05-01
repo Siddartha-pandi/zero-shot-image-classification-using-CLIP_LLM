@@ -13,3 +13,4 @@ python-dotenv
 google-generativeai
 openai
 psutil
+easyocr
