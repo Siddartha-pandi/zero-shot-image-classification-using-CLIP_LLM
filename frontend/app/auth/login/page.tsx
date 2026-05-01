@@ -1,9 +1,7 @@
-'use client'
-
-import { signIn } from "@/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Sparkles } from "lucide-react"
+import { signInWithGoogle } from "./actions"
 
 export default function LoginPage() {
   return (
@@ -19,12 +17,7 @@ export default function LoginPage() {
           
           <CardContent className="space-y-6">
             <div className="space-y-3">
-              <form
-                action={async () => {
-                  "use server"
-                  await signIn("google", { redirectTo: "/home" })
-                }}
-              >
+              <form action={signInWithGoogle}>
                 <Button
                   type="submit"
                   size="lg"
