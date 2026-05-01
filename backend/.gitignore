@@ -15,3 +15,6 @@ ENV/
 .vscode/
 *.swp
 *.swo
+
+# ignore pretrained model artifacts stored locally
+pretrained/

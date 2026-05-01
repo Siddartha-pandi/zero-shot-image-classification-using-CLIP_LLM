@@ -59,3 +59,9 @@ ENV/
 # IDEs
 .idea/
 .vscode/
+
+# large data and build artifacts
+backend/pretrained/
+inputs/
+deliverables/
+*.zip
