@@ -35,21 +35,36 @@ jobs:
           npm install
           npm run build
 
-      - name: Prepare deployment package
+      - name: Prepare and zip deployment package
         run: |
-          # Copy the standalone build output
           mkdir -p deploy
+          # Copy standalone output (includes .next/server/, node_modules, server.js)
           cp -r frontend/.next/standalone/. deploy/
+          # Copy static assets (required separately from standalone)
           cp -r frontend/.next/static deploy/.next/static
+          # Copy public folder
           cp -r frontend/public deploy/public
-          # Include web.config for Azure IIS routing
+          # Copy web.config for Azure IIS/iisnode
           cp frontend/web.config deploy/web.config
+
+          # Debug: verify .next is present before zipping
+          echo "=== deploy/ contents ==="
+          ls -la deploy/
+          echo "=== deploy/.next contents ==="
+          ls -la deploy/.next/
+
+          # Zip with dot files/dirs explicitly included
+          cd deploy
+          zip -r ../release.zip . --include "*" --include ".*" --include ".*/*"
+          cd ..
+          echo "=== ZIP size ==="
+          ls -lh release.zip
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: deploy/
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -77,4 +92,4 @@ jobs:
         with:
           app-name: 'zeroshotimageclassification'
           slot-name: 'Production'
-          package: .
+          package: release.zip
