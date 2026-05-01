@@ -53,9 +53,9 @@ jobs:
           echo "=== deploy/.next contents ==="
           ls -la deploy/.next/
 
-          # Zip with dot files/dirs explicitly included
+          # Zip everything - Linux zip includes .next dot-dirs by default
           cd deploy
-          zip -r ../release.zip . --include "*" --include ".*" --include ".*/*"
+          zip -r ../release.zip .
           cd ..
           echo "=== ZIP size ==="
           ls -lh release.zip
